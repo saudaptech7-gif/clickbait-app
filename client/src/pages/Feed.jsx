@@ -1,11 +1,19 @@
-
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useRef, useState } from "react";
 
-export default function Feed({ ads = [], loading, error }) {
+export default function Feed({ ads = [], loading = false, error = "" }) {
   const [page, setPage] = useState(1);
   const pageRefs = useRef([]);
 
-  const activeAds = ads.filter((ad) => ad.status !== "paused");
+  // Make sure ads is always an array
+  const safeAds = Array.isArray(ads) ? ads : [];
+
+  // Paused ads will not appear in the feed
+  const activeAds = safeAds.filter(
+    (ad) => ad && String(ad.status || "active").toLowerCase() !== "paused",
+  );
+
+  // Show 3 ads in each group
   const pageSize = 3;
   const adPages = [];
 
@@ -13,24 +21,41 @@ export default function Feed({ ads = [], loading, error }) {
     adPages.push(activeAds.slice(i, i + pageSize));
   }
 
+  // Observe each group when it enters the screen
   useEffect(() => {
-    if (loading || adPages.length === 0) return;
+    if (loading || adPages.length === 0) {
+      setPage(1);
+      return;
+    }
 
     const sections = pageRefs.current.filter(Boolean);
+
+    // Fallback for browsers without IntersectionObserver
+    if (!("IntersectionObserver" in window)) {
+      sections.forEach((section) => {
+        section.classList.add("is-visible");
+      });
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add("is-visible");
-            setPage(Number(entry.target.dataset.page));
+
+            const currentPage = Number(entry.target.dataset.page);
+
+            if (currentPage) {
+              setPage(currentPage);
+            }
           }
         });
       },
       {
-        threshold: 0.15,
-        rootMargin: "0px 0px -8% 0px",
-      }
+        threshold: 0.2,
+        rootMargin: "0px 0px -5% 0px",
+      },
     );
 
     sections.forEach((section) => observer.observe(section));
@@ -38,6 +63,7 @@ export default function Feed({ ads = [], loading, error }) {
     return () => observer.disconnect();
   }, [loading, activeAds.length]);
 
+  // Open product website safely
   function openProductWebsite(productUrl) {
     if (!productUrl) return;
 
@@ -71,7 +97,7 @@ export default function Feed({ ads = [], loading, error }) {
       )}
 
       {loading ? (
-        <div className="panel loading-state">Loading feed...</div>
+        <div className="panel loading-state">Loading advertisements...</div>
       ) : activeAds.length === 0 ? (
         <div className="panel empty-state">
           <h3>No active ads available</h3>
@@ -85,13 +111,16 @@ export default function Feed({ ads = [], loading, error }) {
             <span className="feed-current-page" aria-live="polite">
               Page {page}
             </span>
+
             <span>Keep scrolling ↓</span>
           </div>
 
           <div className="feed-pages">
             {adPages.map((group, index) => (
               <section
-                className="feed-page-section"
+                className={`feed-page-section ${
+                  index === 0 ? "is-visible" : ""
+                }`}
                 key={group[0]?._id || group[0]?.id || index}
                 data-page={index + 1}
                 ref={(element) => {
@@ -100,53 +129,48 @@ export default function Feed({ ads = [], loading, error }) {
               >
                 <div className="feed-grid">
                   {group.map((ad) => {
+                    const imageUrl =
+                      ad.imageUrl || ad.image || ad.image_url || "";
+
                     const hasProductUrl = Boolean(ad.productUrl);
 
                     return (
                       <article
-                        className={`feed-card feed-card-animate${
-                          hasProductUrl ? " feed-card-clickable" : ""
-                        }`}
+                        className="feed-card feed-card-animate"
                         key={ad._id || ad.id}
-                        onClick={() =>
-                          openProductWebsite(ad.productUrl)
-                        }
-                        onKeyDown={(event) => {
-                          if (
-                            hasProductUrl &&
-                            (event.key === "Enter" || event.key === " ")
-                          ) {
-                            event.preventDefault();
-                            openProductWebsite(ad.productUrl);
-                          }
-                        }}
-                        role={hasProductUrl ? "link" : undefined}
-                        tabIndex={hasProductUrl ? 0 : undefined}
-                        aria-label={
-                          hasProductUrl
-                            ? `Visit ${ad.title || "product website"}`
-                            : undefined
-                        }
                       >
                         <div className="feed-image-wrap">
-                          <img
-                            src={ad.imageUrl}
-                            alt={ad.title || "Advertisement"}
-                            loading={index === 0 ? "eager" : "lazy"}
-                          />
+                          {imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt={ad.title || "Advertisement"}
+                              loading={index === 0 ? "eager" : "lazy"}
+                              onError={(event) => {
+                                event.currentTarget.style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <div className="feed-image-placeholder">
+                              Image unavailable
+                            </div>
+                          )}
+
                           <span className="feed-label">Sponsored</span>
                         </div>
 
                         <div className="feed-card-content">
                           <h3>{ad.title || "Untitled ad"}</h3>
-                          <p>
-                            {ad.description || "No description provided."}
-                          </p>
+
+                          <p>{ad.description || "No description provided."}</p>
 
                           {hasProductUrl && (
-                            <span className="feed-visit-link">
+                            <button
+                              type="button"
+                              className="feed-visit-link"
+                              onClick={() => openProductWebsite(ad.productUrl)}
+                            >
                               Visit website ↗
-                            </span>
+                            </button>
                           )}
                         </div>
                       </article>
