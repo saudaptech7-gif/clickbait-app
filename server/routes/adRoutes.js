@@ -1,7 +1,7 @@
-
 const express = require("express");
 const multer = require("multer");
 const Ad = require("../models/Ad");
+const { protect, adminOnly } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -33,10 +33,7 @@ function parseCSV(text) {
     } else if (char === "," && !insideQuotes) {
       row.push(value.trim());
       value = "";
-    } else if (
-      (char === "\n" || char === "\r") &&
-      !insideQuotes
-    ) {
+    } else if ((char === "\n" || char === "\r") && !insideQuotes) {
       if (char === "\r" && text[i + 1] === "\n") {
         i++;
       }
@@ -64,9 +61,7 @@ function parseCSV(text) {
     throw new Error("CSV file has no ad records.");
   }
 
-  const headers = rows[0].map((header) =>
-    header.trim().toLowerCase()
-  );
+  const headers = rows[0].map((header) => header.trim().toLowerCase());
 
   return rows.slice(1).map((cells) => {
     const record = {};
@@ -83,15 +78,11 @@ function normalizeAd(record) {
   return {
     title: String(record.title || "").trim(),
     description: String(record.description || "").trim(),
-    imageUrl: String(
-      record.imageUrl || record.imageurl || ""
-    ).trim(),
-    productUrl: String(
-      record.productUrl || record.producturl || ""
-    ).trim(),
+    imageUrl: String(record.imageUrl || record.imageurl || "").trim(),
+    productUrl: String(record.productUrl || record.producturl || "").trim(),
     dimensions: String(record.dimensions || "").trim(),
     status: ["active", "paused"].includes(
-      String(record.status || "").toLowerCase()
+      String(record.status || "").toLowerCase(),
     )
       ? String(record.status).toLowerCase()
       : "active",
@@ -128,7 +119,7 @@ function validateAd(ad) {
   return null;
 }
 
-// GET: Fetch all ads
+// GET: Public users and admins can view ads
 router.get("/", async (req, res) => {
   try {
     const ads = await Ad.find().sort({ createdAt: -1 });
@@ -139,7 +130,7 @@ router.get("/", async (req, res) => {
       ads,
     });
   } catch (error) {
-    console.error("Fetch ads error:", error);
+    console.error("Fetch ads error:", error.message);
 
     res.status(500).json({
       success: false,
@@ -148,8 +139,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST: Create one ad
-router.post("/", async (req, res) => {
+// POST: Create one ad (Admin only)
+router.post("/", protect, adminOnly, async (req, res) => {
   try {
     const ad = normalizeAd(req.body);
     const validationError = validateAd(ad);
@@ -174,160 +165,158 @@ router.post("/", async (req, res) => {
 
     const savedAd = await Ad.create(ad);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Ad created successfully.",
       ad: savedAd,
     });
   } catch (error) {
-    console.error("Create ad error:", error);
+    console.error("Create ad error:", error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to create ad.",
     });
   }
 });
 
-// POST: Bulk upload JSON or CSV.
-// Existing ads are matched by imageUrl and their productUrl is updated.
-router.post("/bulk", upload.single("file"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Please select a JSON or CSV file.",
-      });
-    }
-
-    const filename = req.file.originalname.toLowerCase();
-    let records;
-
-    if (filename.endsWith(".json")) {
-      const parsed = JSON.parse(
-        req.file.buffer.toString("utf8")
-      );
-
-      records = Array.isArray(parsed)
-        ? parsed
-        : parsed.ads;
-
-      if (!Array.isArray(records)) {
+// POST: Bulk upload JSON or CSV (Admin only)
+router.post(
+  "/bulk",
+  protect,
+  adminOnly,
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
         return res.status(400).json({
           success: false,
-          message: "JSON must contain an array of ads.",
+          message: "Please select a JSON or CSV file.",
         });
       }
-    } else if (filename.endsWith(".csv")) {
-      records = parseCSV(
-        req.file.buffer.toString("utf8")
-      );
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: "Only JSON and CSV files are supported.",
-      });
-    }
 
-    if (records.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "The uploaded file contains no ads.",
-      });
-    }
+      const filename = req.file.originalname.toLowerCase();
+      let records;
 
-    if (records.length > 5000) {
-      return res.status(400).json({
-        success: false,
-        message: "Upload a maximum of 5000 ads at a time.",
-      });
-    }
+      if (filename.endsWith(".json")) {
+        const parsed = JSON.parse(req.file.buffer.toString("utf8"));
 
-    let insertedCount = 0;
-    let updatedCount = 0;
-    let skippedCount = 0;
-    const errors = [];
+        records = Array.isArray(parsed) ? parsed : parsed.ads;
 
-    for (let index = 0; index < records.length; index++) {
-      try {
-        const ad = normalizeAd(records[index]);
-        const validationError = validateAd(ad);
+        if (!Array.isArray(records)) {
+          return res.status(400).json({
+            success: false,
+            message: "JSON must contain an array of ads.",
+          });
+        }
+      } else if (filename.endsWith(".csv")) {
+        records = parseCSV(req.file.buffer.toString("utf8"));
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Only JSON and CSV files are supported.",
+        });
+      }
 
-        if (validationError) {
+      if (records.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "The uploaded file contains no ads.",
+        });
+      }
+
+      if (records.length > 5000) {
+        return res.status(400).json({
+          success: false,
+          message: "Upload a maximum of 5000 ads at a time.",
+        });
+      }
+
+      let insertedCount = 0;
+      let updatedCount = 0;
+      let skippedCount = 0;
+      const errors = [];
+
+      for (let index = 0; index < records.length; index++) {
+        try {
+          const ad = normalizeAd(records[index]);
+          const validationError = validateAd(ad);
+
+          if (validationError) {
+            skippedCount++;
+
+            if (errors.length < 20) {
+              errors.push({
+                row: index + 1,
+                message: validationError,
+              });
+            }
+
+            continue;
+          }
+
+          const existingAd = await Ad.findOne({
+            imageUrl: ad.imageUrl,
+          });
+
+          if (existingAd) {
+            if (ad.productUrl) {
+              await Ad.updateOne(
+                { _id: existingAd._id },
+                { $set: { productUrl: ad.productUrl } },
+                { runValidators: true },
+              );
+
+              updatedCount++;
+            } else {
+              skippedCount++;
+            }
+
+            continue;
+          }
+
+          await Ad.create(ad);
+          insertedCount++;
+        } catch (error) {
           skippedCount++;
 
           if (errors.length < 20) {
             errors.push({
               row: index + 1,
-              message: validationError,
+              message:
+                error.code === 11000
+                  ? "Duplicate image URL."
+                  : "Could not save this ad.",
             });
           }
-
-          continue;
-        }
-
-        const existingAd = await Ad.findOne({
-          imageUrl: ad.imageUrl,
-        });
-
-        if (existingAd) {
-          // Existing ad: update its product URL only when supplied.
-          if (ad.productUrl) {
-            await Ad.updateOne(
-              { _id: existingAd._id },
-              { $set: { productUrl: ad.productUrl } },
-              { runValidators: true }
-            );
-
-            updatedCount++;
-          } else {
-            skippedCount++;
-          }
-
-          continue;
-        }
-
-        await Ad.create(ad);
-        insertedCount++;
-      } catch (error) {
-        skippedCount++;
-
-        if (errors.length < 20) {
-          errors.push({
-            row: index + 1,
-            message:
-              error.code === 11000
-                ? "Duplicate image URL."
-                : "Could not save this ad.",
-          });
         }
       }
+
+      return res.status(200).json({
+        success: true,
+        message: "Bulk upload processed.",
+        total: records.length,
+        insertedCount,
+        updatedCount,
+        skippedCount,
+        errors,
+      });
+    } catch (error) {
+      console.error("Bulk upload error:", error.message);
+
+      return res.status(400).json({
+        success: false,
+        message:
+          error instanceof SyntaxError
+            ? "Invalid JSON file."
+            : error.message || "Bulk upload failed.",
+      });
     }
+  },
+);
 
-    res.status(200).json({
-      success: true,
-      message: "Bulk upload processed.",
-      total: records.length,
-      insertedCount,
-      updatedCount,
-      skippedCount,
-      errors,
-    });
-  } catch (error) {
-    console.error("Bulk upload error:", error);
-
-    res.status(400).json({
-      success: false,
-      message:
-        error instanceof SyntaxError
-          ? "Invalid JSON file."
-          : error.message || "Bulk upload failed.",
-    });
-  }
-});
-
-// PATCH: Update an ad
-router.patch("/:id", async (req, res) => {
+// PATCH: Update an ad (Admin only)
+router.patch("/:id", protect, adminOnly, async (req, res) => {
   try {
     const updates = {};
 
@@ -362,10 +351,7 @@ router.patch("/:id", async (req, res) => {
       updates.productUrl = String(updates.productUrl).trim();
     }
 
-    if (
-      updates.imageUrl !== undefined ||
-      updates.productUrl !== undefined
-    ) {
+    if (updates.imageUrl !== undefined || updates.productUrl !== undefined) {
       const currentAd = await Ad.findById(req.params.id);
 
       if (!currentAd) {
@@ -394,7 +380,7 @@ router.patch("/:id", async (req, res) => {
       {
         new: true,
         runValidators: true,
-      }
+      },
     );
 
     if (!ad) {
@@ -404,23 +390,23 @@ router.patch("/:id", async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       message: "Ad updated successfully.",
       ad,
     });
   } catch (error) {
-    console.error("Update ad error:", error);
+    console.error("Update ad error:", error.message);
 
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: "Failed to update ad.",
     });
   }
 });
 
-// DELETE: Remove an ad
-router.delete("/:id", async (req, res) => {
+// DELETE: Remove an ad (Admin only)
+router.delete("/:id", protect, adminOnly, async (req, res) => {
   try {
     const ad = await Ad.findByIdAndDelete(req.params.id);
 
@@ -431,14 +417,14 @@ router.delete("/:id", async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       message: "Ad deleted successfully.",
     });
   } catch (error) {
-    console.error("Delete ad error:", error);
+    console.error("Delete ad error:", error.message);
 
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: "Failed to delete ad.",
     });

@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const adsRoutes = require("./routes/adRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -35,7 +36,11 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Existing Ads API
 app.use("/api/ads", adsRoutes);
+
+// Authentication API
+app.use("/api/auth", authRoutes);
 
 const startServer = async () => {
   try {
