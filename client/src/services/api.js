@@ -1,7 +1,10 @@
-
 const API_URL = (
   import.meta.env.VITE_API_URL || "http://localhost:5000"
-).replace(/\/$/, "");
+).replace(/\/+$/, "");
+
+// =====================================
+// COMMON API REQUEST
+// =====================================
 
 async function request(path, options = {}) {
   let response;
@@ -9,24 +12,59 @@ async function request(path, options = {}) {
   try {
     response = await fetch(`${API_URL}${path}`, options);
   } catch {
-    throw new Error(
-      "Backend se connection nahi ho raha. Check karo ke server running hai."
-    );
+    throw new Error("Can't connect with server.");
   }
 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(
-      data.message || `Request failed (${response.status})`
-    );
+    throw new Error(data.message || `Request failed (${response.status})`);
   }
 
   return data;
 }
 
-export async function getAds() {
-  const data = await request("/api/ads");
+// =====================================
+// AUTHENTICATION
+// =====================================
+
+export function signupUser(values) {
+  return request("/api/auth/signup", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(values),
+  });
+}
+
+export function loginUser(values) {
+  return request("/api/auth/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(values),
+  });
+}
+
+export function getCurrentUser(token) {
+  return request("/api/auth/me", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+// =====================================
+// ADS
+// =====================================
+
+// Get all ads
+export async function getAds(token) {
+  const data = await request("/api/ads", {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
 
   if (Array.isArray(data)) {
     return data;
@@ -35,17 +73,20 @@ export async function getAds() {
   return Array.isArray(data.ads) ? data.ads : [];
 }
 
-export function createAd(ad) {
+// Create ad - Admin only
+export function createAd(ad, token) {
   return request("/api/ads", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(ad),
   });
 }
 
-export function updateAd(id, changes) {
+// Update ad - Admin only
+export function updateAd(id, changes, token) {
   if (!id) {
     throw new Error("Ad ID missing hai.");
   }
@@ -54,24 +95,28 @@ export function updateAd(id, changes) {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(changes),
   });
 }
 
-export function deleteAd(id) {
+// Delete ad - Admin only
+export function deleteAd(id, token) {
   if (!id) {
     throw new Error("Ad ID missing hai.");
   }
 
   return request(`/api/ads/${encodeURIComponent(id)}`, {
     method: "DELETE",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 }
 
-export function uploadAdsFile(file) {
+// Bulk upload - Admin only
+export function uploadAdsFile(file, token) {
   if (!file) {
-    throw new Error("Pehle JSON ya CSV file select karo.");
+    throw new Error("Pehle CSV ya JSON file select karo.");
   }
 
   const formData = new FormData();
@@ -79,6 +124,7 @@ export function uploadAdsFile(file) {
 
   return request("/api/ads/bulk", {
     method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
   });
 }

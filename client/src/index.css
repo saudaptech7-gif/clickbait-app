@@ -225,7 +225,7 @@ h4 {
   font-size: 10px;
 }
 
-.sidebar-bottom > p {
+.sidebar-bottom>p {
   margin: 17px 0 0;
   color: #a1a9b7;
   font-size: 10px;
@@ -713,7 +713,7 @@ h4 {
   color: #8c96a8;
 }
 
-.search-field > span {
+.search-field>span {
   font-size: 22px;
 }
 
@@ -780,7 +780,7 @@ h4 {
   min-width: 0;
 }
 
-.form-field > span {
+.form-field>span {
   color: #39445a;
   font-size: 11px;
   font-weight: 700;
@@ -949,7 +949,7 @@ h4 {
   font-size: 13px;
 }
 
-.upload-dropzone > span:not(.upload-icon) {
+.upload-dropzone>span:not(.upload-icon) {
   color: var(--text-secondary);
   font-size: 11px;
 }
@@ -990,7 +990,7 @@ h4 {
   font-size: 18px;
 }
 
-.selected-file > div {
+.selected-file>div {
   display: grid;
   flex: 1;
   gap: 5px;
@@ -1041,7 +1041,7 @@ h4 {
   font-size: 15px;
 }
 
-.upload-result > p {
+.upload-result>p {
   margin-bottom: 0;
   color: var(--text-secondary);
   font-size: 11px;
@@ -1054,7 +1054,7 @@ h4 {
   gap: 12px;
 }
 
-.result-stats > div {
+.result-stats>div {
   display: grid;
   gap: 5px;
   padding: 13px;
@@ -1091,7 +1091,7 @@ h4 {
   font-size: 11px;
 }
 
-.format-panel > p {
+.format-panel>p {
   color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.7;
@@ -1149,7 +1149,7 @@ h4 {
   font-weight: 800;
 }
 
-.ranking-row > img {
+.ranking-row>img {
   width: 45px;
   height: 45px;
   flex-shrink: 0;
@@ -1693,6 +1693,7 @@ h4 {
   object-fit: fill;
   object-position: center;
 }
+
 /* Override: Instagram-style scroll feed */
 
 .feed-pages {
@@ -1804,5 +1805,1361 @@ h4 {
 
   .feed-card-clickable:hover {
     transform: none;
+  }
+}
+
+/* User Dashboard */
+
+.user-panel-page {
+  min-height: 100vh;
+  padding: 30px;
+  background: #f5f6fa;
+  font-family: "DM Sans", sans-serif;
+}
+
+.user-dashboard {
+  width: 100%;
+  max-width: 1150px;
+  margin: 0 auto;
+}
+
+.user-dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 25px;
+  background: #ffffff;
+  border: 1px solid #e8eaf0;
+  border-radius: 14px;
+}
+
+.user-logo {
+  color: #4f46e5;
+  font-size: 23px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.user-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.user-name {
+  color: #374151;
+  font-weight: 600;
+}
+
+.user-logout-btn {
+  padding: 10px 17px;
+  border: none;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #dc2626;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.user-welcome {
+  margin-top: 25px;
+  padding: 45px;
+  border-radius: 16px;
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.user-greeting {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.user-welcome h1 {
+  margin: 0 0 12px;
+  font-size: 34px;
+}
+
+.user-welcome p:last-child {
+  margin-bottom: 0;
+  color: #e0e7ff;
+  line-height: 1.7;
+}
+
+.user-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.user-stat-card {
+  padding: 25px;
+  background: #ffffff;
+  border: 1px solid #e8eaf0;
+  border-radius: 14px;
+}
+
+.user-stat-icon {
+  margin-bottom: 15px;
+  font-size: 28px;
+}
+
+.user-stat-card h3 {
+  margin: 0 0 10px;
+  color: #374151;
+  font-size: 16px;
+}
+
+.user-stat-card p {
+  margin: 0;
+  color: #6b7280;
+  overflow-wrap: anywhere;
+}
+
+.user-explore-section,
+.user-account-section {
+  margin-top: 25px;
+  padding: 30px;
+  background: #ffffff;
+  border: 1px solid #e8eaf0;
+  border-radius: 14px;
+}
+
+.user-explore-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 25px;
+}
+
+.user-explore-content h2,
+.user-account-section h2 {
+  margin: 0 0 12px;
+  color: #111827;
+}
+
+.user-explore-content p:last-child {
+  margin-bottom: 0;
+  color: #6b7280;
+}
+
+.user-explore-btn {
+  flex-shrink: 0;
+  padding: 13px 20px;
+  border-radius: 9px;
+  background: #4f46e5;
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.user-explore-btn span {
+  margin-left: 8px;
+}
+
+.user-account-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 17px 0;
+  border-bottom: 1px solid #e8eaf0;
+}
+
+.user-account-row:last-child {
+  border-bottom: none;
+}
+
+.user-account-row span {
+  color: #6b7280;
+}
+
+.user-account-row strong {
+  color: #374151;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.user-dashboard-footer {
+  padding: 25px 10px;
+  color: #9ca3af;
+  text-align: center;
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .user-panel-page {
+    padding: 15px;
+  }
+
+  .user-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-welcome {
+    padding: 30px 22px;
+  }
+
+  .user-welcome h1 {
+    font-size: 27px;
+  }
+
+  .user-explore-content {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .user-dashboard-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .user-account-row {
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .user-account-row strong {
+    text-align: left;
+  }
+}
+
+/* AUTH PAGES */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 20px;
+  background: #f4f6fb;
+  font-family: Arial, sans-serif;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 430px;
+  padding: 38px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+}
+
+.auth-heading {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-heading h1 {
+  font-size: 28px;
+  color: #172033;
+  margin-bottom: 10px;
+}
+
+.auth-heading p {
+  color: #7b8495;
+  font-size: 14px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 20px;
+}
+
+.auth-field label {
+  color: #273247;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-field input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid #dce1eb;
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.auth-field input:focus {
+  border-color: #5b5ce2;
+}
+
+.auth-submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: #5b5ce2;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.auth-submit-btn:hover {
+  background: #4849c7;
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  padding: 12px;
+  margin-bottom: 20px;
+  background: #fff0f0;
+  color: #d32f2f;
+  border-radius: 7px;
+  font-size: 13px;
+}
+
+.auth-switch {
+  margin-top: 25px;
+  text-align: center;
+  color: #737d90;
+  font-size: 14px;
+}
+
+.auth-switch a {
+  color: #5b5ce2;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 25px 20px;
+  }
+}
+
+/* =====================================
+   USER FEED - COMPLETE CSS
+===================================== */
+
+.user-feed-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 30px;
+  box-sizing: border-box;
+  background: #f5f6fa;
+  color: #202333;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Heading */
+
+.user-feed-page .section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.user-feed-page .eyebrow {
+  display: block;
+  color: #7165e3;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+}
+
+.user-feed-page .page-heading h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #202333;
+}
+
+.user-feed-page .page-heading p {
+  margin: 0;
+  color: #85899a;
+  font-size: 14px;
+}
+
+/* Toolbar */
+
+.user-feed-page .feed-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  margin-bottom: 25px;
+  background: #fff;
+  border: 1px solid #ececf3;
+  border-radius: 12px;
+  color: #85899a;
+  font-size: 13px;
+}
+
+.user-feed-page .feed-current-page {
+  color: #7165e3;
+  font-weight: 700;
+}
+
+/* Feed Pages */
+
+.user-feed-page .feed-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+  width: 100%;
+}
+
+.user-feed-page .feed-page-section {
+  width: 100%;
+  min-width: 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.user-feed-page .feed-page-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Grid */
+
+.user-feed-page .feed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+/* Cards */
+
+.user-feed-page .feed-card {
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #ededf3;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(30, 35, 70, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user-feed-page .feed-card-clickable {
+  cursor: pointer;
+}
+
+.user-feed-page .feed-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(30, 35, 70, 0.11);
+}
+
+.user-feed-page .feed-image-wrap {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  background: #eeeeF5;
+}
+
+.user-feed-page .feed-image-wrap img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.user-feed-page .feed-card:hover .feed-image-wrap img {
+  transform: scale(1.05);
+}
+
+.user-feed-page .feed-label {
+  position: absolute;
+  top: 13px;
+  left: 13px;
+  padding: 7px 12px;
+  background: rgba(32, 35, 51, 0.85);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 20px;
+}
+
+/* Content */
+
+.user-feed-page .feed-card-content {
+  padding: 20px;
+}
+
+.user-feed-page .feed-card-content h3 {
+  margin: 0 0 10px;
+  color: #202333;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.user-feed-page .feed-card-content p {
+  margin: 0;
+  color: #85899a;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.user-feed-page .feed-visit-link {
+  display: inline-block;
+  margin-top: 18px;
+  color: #7165e3;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Loading and Empty */
+
+.user-feed-page .loading-state,
+.user-feed-page .empty-state {
+  padding: 45px 25px;
+  background: #fff;
+  border: 1px solid #ececf3;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.user-feed-page .empty-state h3 {
+  margin: 0 0 10px;
+  color: #202333;
+  font-size: 19px;
+}
+
+.user-feed-page .empty-state p {
+  margin: 0;
+  color: #85899a;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Error */
+
+.user-feed-page .notice-error {
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border: 1px solid #f3caca;
+  border-radius: 10px;
+  background: #fff0f0;
+  color: #c03939;
+  font-size: 13px;
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+  .user-feed-page .feed-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .user-feed-page {
+    padding: 20px 15px;
+  }
+
+  .user-feed-page .page-heading h2 {
+    font-size: 23px;
+  }
+
+  .user-feed-page .feed-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .user-feed-page .feed-image-wrap {
+    height: 230px;
+  }
+
+  .user-feed-page .feed-toolbar {
+    padding: 13px;
+  }
+}
+
+@media (max-width: 400px) {
+  .user-feed-page {
+    padding: 16px 12px;
+  }
+
+  .user-feed-page .feed-image-wrap {
+    height: 190px;
+  }
+}
+
+/* =====================================
+   USER FEED CSS OVERRIDE
+===================================== */
+
+.user-feed-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 30px;
+  box-sizing: border-box;
+  background: #f5f6fa;
+  overflow-x: hidden;
+  position: relative;
+  margin: 0;
+}
+
+.user-feed-page .page-heading {
+  margin-bottom: 28px;
+}
+
+.user-feed-page .page-heading h2 {
+  font-size: 28px;
+  color: #202333;
+  margin: 0 0 8px;
+}
+
+.user-feed-page .page-heading p {
+  color: #85899a;
+  font-size: 14px;
+  margin: 0;
+}
+
+.user-feed-page .feed-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  margin-bottom: 25px;
+  background: #fff;
+  border: 1px solid #ececf3;
+  border-radius: 12px;
+}
+
+.user-feed-page .feed-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+}
+
+.user-feed-page .feed-page-section {
+  width: 100%;
+  min-width: 0;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: 0.5s ease;
+}
+
+.user-feed-page .feed-page-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.user-feed-page .feed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+.user-feed-page .feed-card {
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #ededf3;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(30, 35, 70, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user-feed-page .feed-card-clickable {
+  cursor: pointer;
+}
+
+.user-feed-page .feed-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(30, 35, 70, 0.11);
+}
+
+.user-feed-page .feed-image-wrap {
+  width: 100%;
+  height: 220px;
+  position: relative;
+  overflow: hidden;
+  background: #eeeeF5;
+}
+
+.user-feed-page .feed-image-wrap img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.user-feed-page .feed-card:hover .feed-image-wrap img {
+  transform: scale(1.05);
+}
+
+.user-feed-page .feed-label {
+  position: absolute;
+  top: 13px;
+  left: 13px;
+  padding: 7px 12px;
+  background: rgba(32, 35, 51, 0.85);
+  color: #fff;
+  font-size: 11px;
+  border-radius: 20px;
+}
+
+.user-feed-page .feed-card-content {
+  padding: 20px;
+}
+
+.user-feed-page .feed-card-content h3 {
+  margin: 0 0 10px;
+  font-size: 17px;
+  color: #202333;
+}
+
+.user-feed-page .feed-card-content p {
+  margin: 0;
+  color: #85899a;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.user-feed-page .feed-visit-link {
+  display: inline-block;
+  margin-top: 18px;
+  color: #7165e3;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.user-feed-page .loading-state,
+.user-feed-page .empty-state {
+  padding: 45px 25px;
+  background: #fff;
+  border: 1px solid #ececf3;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.user-feed-page .notice-error {
+  margin-bottom: 20px;
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+  .user-feed-page .feed-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .user-feed-page {
+    padding: 20px 15px;
+  }
+
+  .user-feed-page .feed-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-feed-page .feed-image-wrap {
+    height: 230px;
+  }
+
+  .user-feed-page .page-heading h2 {
+    font-size: 23px;
+  }
+}
+
+/* =========================================
+   USER FEED - NEW INDEPENDENT LAYOUT
+========================================= */
+
+.user-feed-page {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #f5f6fa !important;
+  color: #202333;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+  z-index: 1;
+}
+
+.user-feed-page *,
+.user-feed-page *::before,
+.user-feed-page *::after {
+  box-sizing: border-box;
+}
+
+/* Feed Header */
+
+.user-feed-page .user-feed-header {
+  width: 100%;
+  min-height: 75px;
+  padding: 0 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #e9eaf0;
+  position: relative;
+  z-index: 5;
+}
+
+.user-feed-page .user-feed-logo {
+  text-decoration: none;
+  color: #7165e3;
+  font-size: 23px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.user-feed-page .user-feed-navigation {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.user-feed-page .user-feed-navigation a {
+  text-decoration: none;
+  color: #777b8d;
+  font-size: 14px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.user-feed-page .user-feed-navigation a:hover,
+.user-feed-page .user-feed-navigation a.active {
+  color: #7165e3;
+}
+
+/* Main Container */
+
+.user-feed-page .user-feed-container {
+  width: 100%;
+  max-width: 1450px;
+  margin: 0 auto;
+  padding: 38px 5%;
+}
+
+/* Heading */
+
+.user-feed-page .user-feed-heading {
+  margin-bottom: 28px;
+}
+
+.user-feed-page .user-feed-eyebrow {
+  color: #7165e3;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.user-feed-page .user-feed-heading h1 {
+  margin: 10px 0;
+  font-size: 30px;
+  color: #202333;
+  font-weight: 750;
+}
+
+.user-feed-page .user-feed-heading p {
+  margin: 0;
+  color: #85899a;
+  font-size: 14px;
+}
+
+/* Toolbar */
+
+.user-feed-page .user-feed-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  margin-bottom: 25px;
+  background: #fff;
+  border: 1px solid #ececf3;
+  border-radius: 12px;
+  color: #7165e3;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Feed Grid */
+
+.user-feed-page .user-feed-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+}
+
+.user-feed-page .user-feed-page-section {
+  width: 100%;
+  min-width: 0;
+}
+
+.user-feed-page .user-feed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+/* Cards */
+
+.user-feed-page .user-feed-card {
+  min-width: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #ececf3;
+  border-radius: 16px;
+  box-shadow: 0 5px 20px rgba(30, 35, 70, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user-feed-page .user-feed-card[role="link"] {
+  cursor: pointer;
+}
+
+.user-feed-page .user-feed-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(30, 35, 70, 0.10);
+}
+
+/* Images */
+
+.user-feed-page .user-feed-image {
+  position: relative;
+  width: 100%;
+  height: 225px;
+  overflow: hidden;
+  background: #eeeef5;
+}
+
+.user-feed-page .user-feed-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.user-feed-page .user-feed-card:hover .user-feed-image img {
+  transform: scale(1.04);
+}
+
+.user-feed-page .user-feed-image span {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 7px 12px;
+  border-radius: 20px;
+  background: rgba(32, 35, 51, 0.85);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Card Content */
+
+.user-feed-page .user-feed-card-content {
+  padding: 20px;
+}
+
+.user-feed-page .user-feed-card-content h3 {
+  margin: 0 0 10px;
+  color: #202333;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.user-feed-page .user-feed-card-content p {
+  margin: 0;
+  color: #85899a;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.user-feed-page .user-feed-visit {
+  display: inline-block;
+  margin-top: 17px;
+  color: #7165e3;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Loading / Empty / Error */
+
+.user-feed-page .user-feed-message {
+  padding: 45px 20px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #ececf3;
+  border-radius: 14px;
+  color: #85899a;
+}
+
+.user-feed-page .user-feed-message h3 {
+  margin: 0 0 10px;
+  color: #202333;
+}
+
+.user-feed-page .user-feed-error {
+  padding: 15px 18px;
+  margin-bottom: 20px;
+  background: #fff0f0;
+  color: #c03939;
+  border: 1px solid #f3caca;
+  border-radius: 10px;
+}
+
+/* Responsive */
+
+@media (max-width: 1000px) {
+  .user-feed-page .user-feed-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .user-feed-page .user-feed-header {
+    padding: 18px 20px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .user-feed-page .user-feed-navigation {
+    gap: 20px;
+  }
+
+  .user-feed-page .user-feed-container {
+    padding: 28px 18px;
+  }
+
+  .user-feed-page .user-feed-heading h1 {
+    font-size: 24px;
+  }
+
+  .user-feed-page .user-feed-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-feed-page .user-feed-image {
+    height: 230px;
+  }
+}
+
+
+/* =====================================
+   USER FEED - INSTAGRAM STYLE ANIMATION
+   THREE ADS PER ROW
+===================================== */
+
+.user-feed-page .user-feed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.user-feed-page .user-feed-card {
+  opacity: 0;
+  transform: translateY(45px) scale(0.96);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.3s ease;
+}
+
+.user-feed-page .user-feed-page-section.is-visible .user-feed-card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.user-feed-page .user-feed-page-section.is-visible .user-feed-card:nth-child(1) {
+  transition-delay: 0.05s;
+}
+
+.user-feed-page .user-feed-page-section.is-visible .user-feed-card:nth-child(2) {
+  transition-delay: 0.18s;
+}
+
+.user-feed-page .user-feed-page-section.is-visible .user-feed-card:nth-child(3) {
+  transition-delay: 0.31s;
+}
+
+.user-feed-page .user-feed-card:hover {
+  transform: translateY(-7px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(30, 35, 70, 0.13);
+}
+
+@media (max-width: 1000px) {
+  .user-feed-page .user-feed-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .user-feed-page .user-feed-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-feed-page .user-feed-card {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* =====================================
+   USER FEED - THREE ADS PER ROW
+===================================== */
+
+.feed-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+}
+
+.feed-page-section {
+  width: 100%;
+  min-width: 0;
+  padding: 15px 0 25px;
+}
+
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+/* =====================================
+   CARD APPEAR ANIMATION
+===================================== */
+
+.feed-card {
+  min-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(45px) scale(0.96);
+
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.3s ease;
+}
+
+/* Show cards when their section becomes visible */
+
+.feed-page-section.is-visible .feed-card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Stagger animation */
+
+.feed-page-section.is-visible .feed-card:nth-child(1) {
+  transition-delay: 0.05s;
+}
+
+.feed-page-section.is-visible .feed-card:nth-child(2) {
+  transition-delay: 0.18s;
+}
+
+.feed-page-section.is-visible .feed-card:nth-child(3) {
+  transition-delay: 0.31s;
+}
+
+/* Hover animation */
+
+.feed-page-section.is-visible .feed-card:hover {
+  transform: translateY(-7px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(30, 35, 70, 0.13);
+}
+
+/* =====================================
+   IMAGE
+===================================== */
+
+.feed-image-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.feed-image-wrap img {
+  display: block;
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.feed-card:hover .feed-image-wrap img {
+  transform: scale(1.05);
+}
+
+.feed-image-placeholder {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  color: #777;
+}
+
+.feed-label {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 12px;
+}
+
+/* =====================================
+   CARD CONTENT
+===================================== */
+
+.feed-card-content {
+  padding: 18px;
+}
+
+.feed-card-content h3 {
+  margin: 0 0 10px;
+}
+
+.feed-card-content p {
+  margin: 0 0 14px;
+  line-height: 1.6;
+}
+
+.feed-visit-link {
+  display: inline-block;
+  border: none;
+  background: transparent;
+  color: #635bff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.feed-visit-link:hover {
+  text-decoration: underline;
+}
+
+/* =====================================
+   RESPONSIVE
+===================================== */
+
+@media (max-width: 650px) {
+  .feed-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+  }
+
+  .feed-image-wrap img,
+  .feed-image-placeholder {
+    height: 170px;
+    min-height: 170px;
+  }
+
+  .feed-card-content {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .feed-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =====================================
+   ACCESSIBILITY
+===================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .feed-card {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .feed-card:hover,
+  .feed-card:hover .feed-image-wrap img {
+    transform: none;
+  }
+}
+
+/* =====================================
+   FIX: EXTRA BLANK SPACE IN AD CARDS
+===================================== */
+
+.feed-card {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: 0;
+}
+
+.feed-card .feed-image-wrap {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  min-height: 220px;
+  max-height: 220px;
+  flex: 0 0 220px;
+  overflow: hidden;
+  background: #f1f3f8;
+}
+
+.feed-card .feed-image-wrap img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: cover;
+}
+
+.feed-card .feed-card-content {
+  flex: 1;
+  padding: 18px;
+}
+
+@media (max-width: 650px) {
+  .feed-card .feed-image-wrap {
+    height: 190px;
+    min-height: 190px;
+    max-height: 190px;
+    flex-basis: 190px;
   }
 }
