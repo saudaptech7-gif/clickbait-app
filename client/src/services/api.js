@@ -12,13 +12,13 @@ async function request(path, options = {}) {
   try {
     response = await fetch(`${API_URL}${path}`, options);
   } catch {
-    throw new Error("Can't connect with server.");
+    throw new Error("Unable to connect to the server.");
   }
 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.message || `Request failed (${response.status})`);
+    throw new Error(data.message || `Request failed (${response.status}).`);
   }
 
   return data;
@@ -28,6 +28,7 @@ async function request(path, options = {}) {
 // AUTHENTICATION
 // =====================================
 
+// Signup
 export function signupUser(values) {
   return request("/api/auth/signup", {
     method: "POST",
@@ -38,6 +39,7 @@ export function signupUser(values) {
   });
 }
 
+// Login
 export function loginUser(values) {
   return request("/api/auth/login", {
     method: "POST",
@@ -48,6 +50,7 @@ export function loginUser(values) {
   });
 }
 
+// Get current logged-in user
 export function getCurrentUser(token) {
   return request("/api/auth/me", {
     headers: {
@@ -60,9 +63,11 @@ export function getCurrentUser(token) {
 // ADS
 // =====================================
 
-// Get all ads
+// Get ads
 export async function getAds(token) {
-  const data = await request("/api/ads", {
+  const endpoint = token ? "/api/ads/admin/all" : "/api/ads";
+
+  const data = await request(endpoint, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 
@@ -88,7 +93,7 @@ export function createAd(ad, token) {
 // Update ad - Admin only
 export function updateAd(id, changes, token) {
   if (!id) {
-    throw new Error("Ad ID missing hai.");
+    throw new Error("Ad ID is missing.");
   }
 
   return request(`/api/ads/${encodeURIComponent(id)}`, {
@@ -104,7 +109,7 @@ export function updateAd(id, changes, token) {
 // Delete ad - Admin only
 export function deleteAd(id, token) {
   if (!id) {
-    throw new Error("Ad ID missing hai.");
+    throw new Error("Ad ID is missing.");
   }
 
   return request(`/api/ads/${encodeURIComponent(id)}`, {
@@ -113,18 +118,49 @@ export function deleteAd(id, token) {
   });
 }
 
-// Bulk upload - Admin only
+// =====================================
+// BULK UPLOAD
+// =====================================
+
+// Upload CSV or JSON file - Admin only
 export function uploadAdsFile(file, token) {
   if (!file) {
-    throw new Error("Pehle CSV ya JSON file select karo.");
+    throw new Error("Please select a CSV or JSON file.");
   }
 
   const formData = new FormData();
+
   formData.append("file", file);
 
   return request("/api/ads/bulk", {
     method: "POST",
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
+  });
+}
+
+// =====================================
+// AD TRACKING
+// =====================================
+
+// Record impression
+export function trackImpression(id) {
+  if (!id) {
+    throw new Error("Ad ID is missing.");
+  }
+
+  return request(`/api/ads/${encodeURIComponent(id)}/impression`, {
+    method: "POST",
+  });
+}
+
+// Record click
+export function trackClick(id) {
+  if (!id) {
+    throw new Error("Ad ID is missing.");
+  }
+
+  return request(`/api/ads/${encodeURIComponent(id)}/click`, {
+    method: "POST",
   });
 }
