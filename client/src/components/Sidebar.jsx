@@ -1,21 +1,22 @@
-
 import { NavLink } from "react-router-dom";
 
 const links = [
-  { to: "/", label: "Overview", icon: "◫", end: true },
-  { to: "/ads", label: "Ads Management", icon: "▤" },
-  { to: "/create-ad", label: "Create Ad", icon: "＋" },
-  { to: "/bulk-upload", label: "Bulk Upload", icon: "⇧" },
-  { to: "/analytics", label: "Analytics", icon: "▥" },
-  { to: "/feed", label: "User Feed", icon: "▷" },
+  { to: "/admin", label: "Overview", icon: "◫", end: true },
+  { to: "/admin/ads", label: "Ads Management", icon: "▤" },
+  { to: "/admin/create-ad", label: "Create Ad", icon: "＋" },
+  { to: "/admin/bulk-upload", label: "Bulk Upload", icon: "⇧" },
+  { to: "/admin/analytics", label: "Analytics", icon: "▥" },
+  { to: "/", label: "Public Feed", icon: "▷", end: true },
 ];
 
 export default function Sidebar({ open, onNavigate }) {
   return (
     <aside className={`sidebar ${open ? "sidebar-open" : ""}`}>
-      <NavLink to="/" className="brand" onClick={onNavigate}>
+      <NavLink to="/admin" className="brand" onClick={onNavigate}>
         <span className="brand-mark">C</span>
-        <span>Clickbait<span className="brand-dot">.</span></span>
+        <span>
+          Clickbait<span className="brand-dot">.</span>
+        </span>
       </NavLink>
 
       <p className="sidebar-label">WORKSPACE</p>
@@ -33,9 +34,8 @@ export default function Sidebar({ open, onNavigate }) {
           >
             <span className="nav-icon">{link.icon}</span>
             <span>{link.label}</span>
-            {link.to === "/ads" && (
-              <span className="nav-arrow">›</span>
-            )}
+
+            {link.to === "/admin/ads" && <span className="nav-arrow">›</span>}
           </NavLink>
         ))}
       </nav>
@@ -43,11 +43,13 @@ export default function Sidebar({ open, onNavigate }) {
       <div className="sidebar-bottom">
         <div className="sidebar-status">
           <span className="status-dot" />
+
           <div>
             <strong>Admin Workspace</strong>
             <small>Campaign management</small>
           </div>
         </div>
+
         <p>Clickbait Ads Platform</p>
       </div>
     </aside>

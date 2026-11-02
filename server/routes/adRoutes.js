@@ -1,9 +1,16 @@
 const express = require("express");
 const multer = require("multer");
+
 const Ad = require("../models/Ad");
+const AdEvent = require("../models/AdEvent");
+
 const { protect, adminOnly } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+
+// =====================================
+// MULTER CONFIGURATION
+// =====================================
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -11,6 +18,19 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024,
   },
 });
+
+// =====================================
+// SIMULATED REVENUE CONFIGURATION
+// =====================================
+
+// Practice/demo calculation only.
+// $0.001 per recorded impression.
+// Clicks do not generate simulated revenue.
+const SIMULATED_REVENUE_PER_IMPRESSION = 0.001;
+
+// =====================================
+// CSV PARSER
+// =====================================
 
 function parseCSV(text) {
   const rows = [];
@@ -74,13 +94,22 @@ function parseCSV(text) {
   });
 }
 
+// =====================================
+// NORMALIZE AD DATA
+// =====================================
+
 function normalizeAd(record) {
   return {
     title: String(record.title || "").trim(),
+
     description: String(record.description || "").trim(),
+
     imageUrl: String(record.imageUrl || record.imageurl || "").trim(),
+
     productUrl: String(record.productUrl || record.producturl || "").trim(),
+
     dimensions: String(record.dimensions || "").trim(),
+
     status: ["active", "paused"].includes(
       String(record.status || "").toLowerCase(),
     )
@@ -88,6 +117,10 @@ function normalizeAd(record) {
       : "active",
   };
 }
+
+// =====================================
+// VALIDATE AD
+// =====================================
 
 function validateAd(ad) {
   if (!ad.imageUrl) {
@@ -119,12 +152,19 @@ function validateAd(ad) {
   return null;
 }
 
-// GET: Public users and admins can view ads
+// =====================================
+// PUBLIC: GET ALL ACTIVE ADS
+// =====================================
+
 router.get("/", async (req, res) => {
   try {
-    const ads = await Ad.find().sort({ createdAt: -1 });
+    const ads = await Ad.find({
+      status: "active",
+    }).sort({
+      createdAt: -1,
+    });
 
-    res.json({
+    return res.json({
       success: true,
       count: ads.length,
       ads,
@@ -132,17 +172,135 @@ router.get("/", async (req, res) => {
   } catch (error) {
     console.error("Fetch ads error:", error.message);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to fetch ads.",
     });
   }
 });
 
-// POST: Create one ad (Admin only)
+// =====================================
+// PUBLIC: RECORD IMPRESSION
+// =====================================
+
+router.post("/:id/impression", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ad ID.",
+      });
+    }
+
+    const ad = await Ad.findOneAndUpdate(
+      {
+        _id: id,
+        status: "active",
+      },
+      {
+        $inc: {
+          impressions: 1,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: "Active ad not found.",
+      });
+    }
+
+    await AdEvent.create({
+      ad: ad._id,
+      eventType: "impression",
+      simulatedRevenue: SIMULATED_REVENUE_PER_IMPRESSION,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Impression recorded.",
+    });
+  } catch (error) {
+    console.error("Impression tracking error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to record impression.",
+    });
+  }
+});
+
+// =====================================
+// PUBLIC: RECORD CLICK
+// =====================================
+
+router.post("/:id/click", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ad ID.",
+      });
+    }
+
+    const ad = await Ad.findOneAndUpdate(
+      {
+        _id: id,
+        status: "active",
+      },
+      {
+        $inc: {
+          clicks: 1,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: "Active ad not found.",
+      });
+    }
+
+    await AdEvent.create({
+      ad: ad._id,
+      eventType: "click",
+      simulatedRevenue: 0,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Click recorded.",
+    });
+  } catch (error) {
+    console.error("Click tracking error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to record click.",
+    });
+  }
+});
+
+// =====================================
+// ADMIN: CREATE ONE AD
+// =====================================
+
 router.post("/", protect, adminOnly, async (req, res) => {
   try {
     const ad = normalizeAd(req.body);
+
     const validationError = validateAd(ad);
 
     if (validationError) {
@@ -180,7 +338,10 @@ router.post("/", protect, adminOnly, async (req, res) => {
   }
 });
 
-// POST: Bulk upload JSON or CSV (Admin only)
+// =====================================
+// ADMIN: BULK UPLOAD JSON OR CSV
+// =====================================
+
 router.post(
   "/bulk",
   protect,
@@ -196,6 +357,7 @@ router.post(
       }
 
       const filename = req.file.originalname.toLowerCase();
+
       let records;
 
       if (filename.endsWith(".json")) {
@@ -235,11 +397,13 @@ router.post(
       let insertedCount = 0;
       let updatedCount = 0;
       let skippedCount = 0;
+
       const errors = [];
 
       for (let index = 0; index < records.length; index++) {
         try {
           const ad = normalizeAd(records[index]);
+
           const validationError = validateAd(ad);
 
           if (validationError) {
@@ -262,9 +426,17 @@ router.post(
           if (existingAd) {
             if (ad.productUrl) {
               await Ad.updateOne(
-                { _id: existingAd._id },
-                { $set: { productUrl: ad.productUrl } },
-                { runValidators: true },
+                {
+                  _id: existingAd._id,
+                },
+                {
+                  $set: {
+                    productUrl: ad.productUrl,
+                  },
+                },
+                {
+                  runValidators: true,
+                },
               );
 
               updatedCount++;
@@ -276,6 +448,7 @@ router.post(
           }
 
           await Ad.create(ad);
+
           insertedCount++;
         } catch (error) {
           skippedCount++;
@@ -315,7 +488,10 @@ router.post(
   },
 );
 
-// PATCH: Update an ad (Admin only)
+// =====================================
+// ADMIN: UPDATE AD
+// =====================================
+
 router.patch("/:id", protect, adminOnly, async (req, res) => {
   try {
     const updates = {};
@@ -363,6 +539,7 @@ router.patch("/:id", protect, adminOnly, async (req, res) => {
 
       const validationError = validateAd({
         imageUrl: updates.imageUrl ?? currentAd.imageUrl,
+
         productUrl: updates.productUrl ?? currentAd.productUrl,
       });
 
@@ -376,7 +553,9 @@ router.patch("/:id", protect, adminOnly, async (req, res) => {
 
     const ad = await Ad.findByIdAndUpdate(
       req.params.id,
-      { $set: updates },
+      {
+        $set: updates,
+      },
       {
         new: true,
         runValidators: true,
@@ -405,7 +584,10 @@ router.patch("/:id", protect, adminOnly, async (req, res) => {
   }
 });
 
-// DELETE: Remove an ad (Admin only)
+// =====================================
+// ADMIN: DELETE AD
+// =====================================
+
 router.delete("/:id", protect, adminOnly, async (req, res) => {
   try {
     const ad = await Ad.findByIdAndDelete(req.params.id);
@@ -416,6 +598,11 @@ router.delete("/:id", protect, adminOnly, async (req, res) => {
         message: "Ad not found.",
       });
     }
+
+    // Remove associated event records too.
+    await AdEvent.deleteMany({
+      ad: ad._id,
+    });
 
     return res.json({
       success: true,

@@ -1,4 +1,3 @@
-
 /* eslint-disable no-undef */
 /* eslint-disable react-hooks/set-state-in-effect */
 
@@ -22,9 +21,6 @@ import BulkUpload from "./pages/BulkUpload";
 import Analytics from "./pages/Analytics";
 import Feed from "./pages/Feed";
 import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-
-import UserPanel from "./user/UserPanel";
 
 import {
   getAds,
@@ -36,16 +32,56 @@ import {
 } from "./services/api";
 
 // =====================================
+// PUBLIC FEED
+// =====================================
+
+function PublicFeed() {
+  const [ads, setAds] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadPublicAds() {
+      try {
+        const records = await getAds();
+
+        if (active) {
+          setAds(Array.isArray(records) ? records : []);
+        }
+      } catch (err) {
+        if (active) {
+          setError(err.message || "Unable to load ads.");
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadPublicAds();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return <Feed ads={ads} loading={loading} error={error} />;
+}
+
+// =====================================
 // ADMIN DASHBOARD
 // =====================================
 
-function Dashboard({ token }) {
+function Dashboard({ token, onLogout }) {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Load advertisements
+  // Load ads
   const loadAds = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -90,7 +126,7 @@ function Dashboard({ token }) {
   // Delete ad
   async function handleDelete(ad) {
     const confirmed = window.confirm(
-      `Delete "${ad.title || "this advertisement"}"? This cannot be undone.`
+      `Delete "${ad.title || "this advertisement"}"? This cannot be undone.`,
     );
 
     if (!confirmed) return;
@@ -106,8 +142,7 @@ function Dashboard({ token }) {
   // Pause / Activate ad
   async function handleToggle(ad) {
     try {
-      const status =
-        ad.status === "paused" ? "active" : "paused";
+      const status = ad.status === "paused" ? "active" : "paused";
 
       await updateAd(ad._id || ad.id, { status }, token);
       await loadAds();
@@ -145,22 +180,18 @@ function Dashboard({ token }) {
         />
       )}
 
-      <Sidebar
-        open={sidebarOpen}
-        onNavigate={() => setSidebarOpen(false)}
-      />
+      <Sidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
 
       <div className="main-area">
         <Header
-          onMenuClick={() =>
-            setSidebarOpen((current) => !current)
-          }
+          onMenuClick={() => setSidebarOpen((current) => !current)}
+          onLogout={onLogout}
         />
 
         <main className="main-content">
           <Routes>
             <Route
-              path="/"
+              index
               element={
                 <Overview
                   ads={ads}
@@ -172,7 +203,7 @@ function Dashboard({ token }) {
             />
 
             <Route
-              path="/ads"
+              path="ads"
               element={
                 <AdsManagement
                   ads={ads}
@@ -185,103 +216,31 @@ function Dashboard({ token }) {
             />
 
             <Route
-              path="/create-ad"
-              element={
-                <CreateAd onCreate={handleCreate} />
-              }
+              path="create-ad"
+              element={<CreateAd onCreate={handleCreate} />}
             />
 
             <Route
-              path="/bulk-upload"
-              element={
-                <BulkUpload onUpload={handleBulkUpload} />
-              }
+              path="bulk-upload"
+              element={<BulkUpload onUpload={handleBulkUpload} />}
             />
 
             <Route
-              path="/analytics"
-              element={
-                <Analytics
-                  ads={ads}
-                  loading={loading}
-                  error={error}
-                />
-              }
+              path="analytics"
+              element={<Analytics ads={ads} loading={loading} error={error} />}
             />
 
-            <Route
-              path="/feed"
-              element={
-                <Feed
-                  ads={ads}
-                  loading={loading}
-                  error={error}
-                />
-              }
-            />
-
-            <Route
-              path="*"
-              element={<Navigate to="/" replace />}
-            />
+            <Route path="*" element={<Navigate to="/admin" replace />} />
           </Routes>
         </main>
 
         <footer className="app-footer">
-          <span>
-            © {new Date().getFullYear()} Clickbait Ads Platform
-          </span>
+          <span>© {new Date().getFullYear()} Clickbait Ads Platform</span>
 
           <span>Admin Workspace</span>
         </footer>
       </div>
     </div>
-  );
-}
-
-// =====================================
-// USER FEED
-// =====================================
-
-function UserFeed({ token }) {
-  const [ads, setAds] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadUserAds() {
-      try {
-        const records = await getAds(token);
-
-        if (active) {
-          setAds(Array.isArray(records) ? records : []);
-        }
-      } catch (err) {
-        if (active) {
-          setError(err.message || "Unable to load ads.");
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadUserAds();
-
-    return () => {
-      active = false;
-    };
-  }, [token]);
-
-  return (
-    <Feed
-      ads={ads}
-      loading={loading}
-      error={error}
-    />
   );
 }
 
@@ -294,13 +253,11 @@ function AppContent() {
 
   const [user, setUser] = useState(null);
 
-  const [token, setToken] = useState(
-    () => localStorage.getItem("token")
-  );
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
 
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  // Restore login session
+  // Restore existing session
   useEffect(() => {
     let active = true;
 
@@ -347,10 +304,14 @@ function AppContent() {
     };
   }, [token]);
 
-  // Login
+  // Admin login
   function handleLogin(result) {
     if (!result?.token || !result?.user) {
       throw new Error("Invalid login response.");
+    }
+
+    if (result.user.role !== "admin") {
+      throw new Error("Admin account required.");
     }
 
     localStorage.setItem("token", result.token);
@@ -358,12 +319,7 @@ function AppContent() {
     setUser(result.user);
     setToken(result.token);
 
-    navigate(
-      result.user.role === "admin"
-        ? "/"
-        : "/user-panel",
-      { replace: true }
-    );
+    navigate("/admin", { replace: true });
   }
 
   // Logout
@@ -373,107 +329,52 @@ function AppContent() {
     setToken(null);
     setUser(null);
 
-    navigate("/login", { replace: true });
-  }
-
-  // Wait for backend session verification
-  if (checkingAuth) {
-    return (
-      <div className="auth-page">
-        Checking account...
-      </div>
-    );
+    navigate("/admin/login", { replace: true });
   }
 
   return (
     <Routes>
-      {/* LOGIN */}
+      {/* PUBLIC FEED */}
+
+      <Route path="/" element={<PublicFeed />} />
+
+      {/* OLD FEED URL */}
+
+      <Route path="/feed" element={<Navigate to="/" replace />} />
+
+      {/* ADMIN LOGIN */}
 
       <Route
-        path="/login"
+        path="/admin/login"
         element={
-          user ? (
-            <Navigate
-              to={
-                user.role === "admin"
-                  ? "/"
-                  : "/user-panel"
-              }
-              replace
-            />
+          checkingAuth ? (
+            <div className="auth-page">Checking account...</div>
+          ) : user?.role === "admin" ? (
+            <Navigate to="/admin" replace />
           ) : (
             <Login onLogin={handleLogin} />
           )
         }
       />
 
-      {/* SIGNUP */}
+      {/* PROTECTED ADMIN DASHBOARD */}
 
       <Route
-        path="/signup"
+        path="/admin/*"
         element={
-          user ? (
-            <Navigate
-              to={
-                user.role === "admin"
-                  ? "/"
-                  : "/user-panel"
-              }
-              replace
-            />
+          checkingAuth ? (
+            <div className="auth-page">Checking account...</div>
+          ) : user?.role === "admin" ? (
+            <Dashboard token={token} onLogout={handleLogout} />
           ) : (
-            <Signup onLogin={handleLogin} />
+            <Navigate to="/admin/login" replace />
           )
         }
       />
 
-      {/* USER PANEL */}
+      {/* UNKNOWN ROUTES */}
 
-      <Route
-        path="/user-panel"
-        element={
-          !user ? (
-            <Navigate to="/login" replace />
-          ) : user.role === "user" ? (
-            <UserPanel
-              user={user}
-              onLogout={handleLogout}
-            />
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-
-      {/* USER FEED */}
-
-      <Route
-        path="/feed"
-        element={
-          !user ? (
-            <Navigate to="/login" replace />
-          ) : user.role === "user" ? (
-            <UserFeed token={token} />
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-
-      {/* ADMIN DASHBOARD */}
-
-      <Route
-        path="/*"
-        element={
-          !user ? (
-            <Navigate to="/login" replace />
-          ) : user.role === "admin" ? (
-            <Dashboard token={token} />
-          ) : (
-            <Navigate to="/user-panel" replace />
-          )
-        }
-      />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
