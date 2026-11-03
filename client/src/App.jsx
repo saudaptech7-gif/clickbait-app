@@ -1,8 +1,8 @@
+
 /* eslint-disable no-undef */
 /* eslint-disable react-hooks/set-state-in-effect */
 
 import { useCallback, useEffect, useState } from "react";
-
 import {
   BrowserRouter,
   Navigate,
@@ -21,6 +21,7 @@ import BulkUpload from "./pages/BulkUpload";
 import Analytics from "./pages/Analytics";
 import Feed from "./pages/Feed";
 import Login from "./pages/Login";
+import UserPanel from "./user/UserPanel";
 
 import {
   getAds,
@@ -31,11 +32,8 @@ import {
   getCurrentUser,
 } from "./services/api";
 
-// =====================================
 // PUBLIC FEED
-// =====================================
-
-function PublicFeed() {
+function PublicFeed({ user, onLogout }) {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -51,13 +49,9 @@ function PublicFeed() {
           setAds(Array.isArray(records) ? records : []);
         }
       } catch (err) {
-        if (active) {
-          setError(err.message || "Unable to load ads.");
-        }
+        if (active) setError(err.message || "Unable to load ads.");
       } finally {
-        if (active) {
-          setLoading(false);
-        }
+        if (active) setLoading(false);
       }
     }
 
@@ -68,27 +62,30 @@ function PublicFeed() {
     };
   }, []);
 
-  return <Feed ads={ads} loading={loading} error={error} />;
+  return (
+    <Feed
+      ads={ads}
+      loading={loading}
+      error={error}
+      user={user}
+      onLogout={onLogout}
+    />
+  );
 }
 
-// =====================================
 // ADMIN DASHBOARD
-// =====================================
-
 function Dashboard({ token, onLogout }) {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Load ads
   const loadAds = useCallback(async () => {
     setLoading(true);
     setError("");
 
     try {
       const records = await getAds(token);
-
       setAds(Array.isArray(records) ? records : []);
     } catch (err) {
       setError(err.message || "Unable to load ads.");
@@ -101,7 +98,6 @@ function Dashboard({ token, onLogout }) {
     loadAds();
   }, [loadAds]);
 
-  // Create ad
   async function handleCreate(values) {
     try {
       await createAd(values, token);
@@ -112,7 +108,6 @@ function Dashboard({ token, onLogout }) {
     }
   }
 
-  // Update ad
   async function handleUpdate(id, values) {
     try {
       await updateAd(id, values, token);
@@ -123,10 +118,9 @@ function Dashboard({ token, onLogout }) {
     }
   }
 
-  // Delete ad
   async function handleDelete(ad) {
     const confirmed = window.confirm(
-      `Delete "${ad.title || "this advertisement"}"? This cannot be undone.`,
+      `Delete "${ad.title || "this advertisement"}"? This cannot be undone.`
     );
 
     if (!confirmed) return;
@@ -139,11 +133,9 @@ function Dashboard({ token, onLogout }) {
     }
   }
 
-  // Pause / Activate ad
   async function handleToggle(ad) {
     try {
       const status = ad.status === "paused" ? "active" : "paused";
-
       await updateAd(ad._id || ad.id, { status }, token);
       await loadAds();
     } catch (err) {
@@ -151,12 +143,10 @@ function Dashboard({ token, onLogout }) {
     }
   }
 
-  // Bulk upload
   async function handleBulkUpload(file) {
     try {
       const result = await uploadAdsFile(file, token);
       await loadAds();
-
       return result;
     } catch (err) {
       setError(err.message || "Unable to upload ads.");
@@ -180,7 +170,10 @@ function Dashboard({ token, onLogout }) {
         />
       )}
 
-      <Sidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
+      <Sidebar
+        open={sidebarOpen}
+        onNavigate={() => setSidebarOpen(false)}
+      />
 
       <div className="main-area">
         <Header
@@ -227,7 +220,13 @@ function Dashboard({ token, onLogout }) {
 
             <Route
               path="analytics"
-              element={<Analytics ads={ads} loading={loading} error={error} />}
+              element={
+                <Analytics
+                  ads={ads}
+                  loading={loading}
+                  error={error}
+                />
+              }
             />
 
             <Route path="*" element={<Navigate to="/admin" replace />} />
@@ -236,7 +235,6 @@ function Dashboard({ token, onLogout }) {
 
         <footer className="app-footer">
           <span>© {new Date().getFullYear()} Clickbait Ads Platform</span>
-
           <span>Admin Workspace</span>
         </footer>
       </div>
@@ -244,20 +242,14 @@ function Dashboard({ token, onLogout }) {
   );
 }
 
-// =====================================
 // MAIN APP CONTENT
-// =====================================
-
 function AppContent() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
-
   const [token, setToken] = useState(() => localStorage.getItem("token"));
-
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  // Restore existing session
   useEffect(() => {
     let active = true;
 
@@ -267,7 +259,6 @@ function AppContent() {
           setUser(null);
           setCheckingAuth(false);
         }
-
         return;
       }
 
@@ -279,9 +270,7 @@ function AppContent() {
           throw new Error("Invalid user session.");
         }
 
-        if (active) {
-          setUser(currentUser);
-        }
+        if (active) setUser(currentUser);
       } catch {
         localStorage.removeItem("token");
 
@@ -290,9 +279,7 @@ function AppContent() {
           setUser(null);
         }
       } finally {
-        if (active) {
-          setCheckingAuth(false);
-        }
+        if (active) setCheckingAuth(false);
       }
     }
 
@@ -304,14 +291,14 @@ function AppContent() {
     };
   }, [token]);
 
-  // Admin login
+  // ADMIN AND USER LOGIN
   function handleLogin(result) {
     if (!result?.token || !result?.user) {
       throw new Error("Invalid login response.");
     }
 
-    if (result.user.role !== "admin") {
-      throw new Error("Admin account required.");
+    if (!["admin", "user"].includes(result.user.role)) {
+      throw new Error("Invalid account role.");
     }
 
     localStorage.setItem("token", result.token);
@@ -319,69 +306,100 @@ function AppContent() {
     setUser(result.user);
     setToken(result.token);
 
-    navigate("/admin", { replace: true });
+    if (result.user.role === "admin") {
+      navigate("/admin", { replace: true });
+    } else {
+      navigate("/user-panel", { replace: true });
+    }
   }
 
-  // Logout
   function handleLogout() {
     localStorage.removeItem("token");
-
     setToken(null);
     setUser(null);
+    navigate("/login", { replace: true });
+  }
 
-    navigate("/admin/login", { replace: true });
+  if (checkingAuth) {
+    return <div className="auth-page">Checking account...</div>;
   }
 
   return (
     <Routes>
-      {/* PUBLIC FEED */}
-
-      <Route path="/" element={<PublicFeed />} />
-
-      {/* OLD FEED URL */}
-
-      <Route path="/feed" element={<Navigate to="/" replace />} />
-
-      {/* ADMIN LOGIN */}
+      {/* PUBLIC ADS */}
+      <Route
+        path="/"
+        element={
+          <PublicFeed user={user} onLogout={handleLogout} />
+        }
+      />
 
       <Route
-        path="/admin/login"
+        path="/feed"
+        element={<Navigate to="/" replace />}
+      />
+
+      {/* USER LOGIN */}
+      <Route
+        path="/login"
         element={
-          checkingAuth ? (
-            <div className="auth-page">Checking account...</div>
-          ) : user?.role === "admin" ? (
-            <Navigate to="/admin" replace />
+          user ? (
+            <Navigate
+              to={user.role === "admin" ? "/admin" : "/user-panel"}
+              replace
+            />
           ) : (
             <Login onLogin={handleLogin} />
           )
         }
       />
 
-      {/* PROTECTED ADMIN DASHBOARD */}
+      {/* ADMIN LOGIN */}
+      <Route
+        path="/admin/login"
+        element={
+          user?.role === "admin" ? (
+            <Navigate to="/admin" replace />
+          ) : user?.role === "user" ? (
+            <Navigate to="/user-panel" replace />
+          ) : (
+            <Login onLogin={handleLogin} />
+          )
+        }
+      />
 
+      {/* USER DASHBOARD */}
+      <Route
+        path="/user-panel"
+        element={
+          user?.role === "user" ? (
+            <UserPanel user={user} onLogout={handleLogout} />
+          ) : user?.role === "admin" ? (
+            <Navigate to="/admin" replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      {/* ADMIN DASHBOARD */}
       <Route
         path="/admin/*"
         element={
-          checkingAuth ? (
-            <div className="auth-page">Checking account...</div>
-          ) : user?.role === "admin" ? (
+          user?.role === "admin" ? (
             <Dashboard token={token} onLogout={handleLogout} />
+          ) : user?.role === "user" ? (
+            <Navigate to="/user-panel" replace />
           ) : (
             <Navigate to="/admin/login" replace />
           )
         }
       />
 
-      {/* UNKNOWN ROUTES */}
-
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
-
-// =====================================
-// APP
-// =====================================
 
 export default function App() {
   return (

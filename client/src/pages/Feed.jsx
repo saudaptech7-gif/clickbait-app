@@ -1,16 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { trackImpression, trackClick } from "../services/api";
+import UserNavbar from "../components/UserNavbar";
 
-
-export default function Feed({ ads = [], loading = false, error = "" }) {
+export default function Feed({
+  ads = [],
+  loading = false,
+  error = "",
+  user,
+  onLogout,
+}) {
   const [page, setPage] = useState(1);
   const pageRefs = useRef([]);
   const adCardRefs = useRef([]);
   const trackedImpressions = useRef(new Set());
 
-  const safeAds = Array.isArray(ads) ? ads : [];
-
-  const activeAds = safeAds.filter(
+  const activeAds = (Array.isArray(ads) ? ads : []).filter(
     (ad) => ad && String(ad.status || "active").toLowerCase() === "active",
   );
 
@@ -21,42 +25,24 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
     adPages.push(activeAds.slice(i, i + pageSize));
   }
 
-  // =====================================
-  // PAGE SCROLL OBSERVER
-  // =====================================
-
   useEffect(() => {
-    if (loading || adPages.length === 0) {
-      return;
-    }
+    if (loading || !adPages.length) return;
 
     const sections = pageRefs.current.filter(Boolean);
 
-    if (!("IntersectionObserver" in window)) {
-      sections.forEach((section) => {
-        section.classList.add("is-visible");
-      });
-      return;
-    }
+    if (!("IntersectionObserver" in window)) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-
             const currentPage = Number(entry.target.dataset.page);
 
-            if (currentPage) {
-              setPage(currentPage);
-            }
+            if (currentPage) setPage(currentPage);
           }
         });
       },
-      {
-        threshold: 0.2,
-        rootMargin: "0px 0px -5% 0px",
-      },
+      { threshold: 0.2 },
     );
 
     sections.forEach((section) => observer.observe(section));
@@ -64,32 +50,13 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
     return () => observer.disconnect();
   }, [loading, activeAds.length]);
 
-  // =====================================
-  // IMPRESSION TRACKING
-  // =====================================
-
+  // Impression tracking
   useEffect(() => {
-    if (loading || activeAds.length === 0) {
-      return;
-    }
+    if (loading || !activeAds.length) return;
 
     const cards = adCardRefs.current.filter(Boolean);
 
-    if (!("IntersectionObserver" in window)) {
-      cards.forEach((card) => {
-        const adId = card.dataset.adId;
-
-        if (adId && !trackedImpressions.current.has(adId)) {
-          trackedImpressions.current.add(adId);
-
-          trackImpression(adId).catch((err) => {
-            console.warn("Impression tracking failed:", err.message);
-          });
-        }
-      });
-
-      return;
-    }
+    if (!("IntersectionObserver" in window)) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -98,9 +65,7 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
 
           const adId = entry.target.dataset.adId;
 
-          if (!adId || trackedImpressions.current.has(adId)) {
-            return;
-          }
+          if (!adId || trackedImpressions.current.has(adId)) return;
 
           trackedImpressions.current.add(adId);
 
@@ -111,19 +76,13 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
           observer.unobserve(entry.target);
         });
       },
-      {
-        threshold: 0.5,
-      },
+      { threshold: 0.5 },
     );
 
     cards.forEach((card) => observer.observe(card));
 
     return () => observer.disconnect();
   }, [loading, activeAds]);
-
-  // =====================================
-  // OPEN PRODUCT WEBSITE
-  // =====================================
 
   function openProductWebsite(ad) {
     if (!ad?.productUrl) return;
@@ -133,32 +92,30 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
     try {
       url = new URL(ad.productUrl);
 
-      if (!["https:", "http:"].includes(url.protocol)) {
-        return;
-      }
+      if (!["https:", "http:"].includes(url.protocol)) return;
     } catch {
       console.error("Invalid product website URL.");
       return;
     }
 
-    const newWindow = window.open(url.href, "_blank", "noopener,noreferrer");
-
-    if (newWindow) {
-      newWindow.opener = null;
-    }
-
-    if (ad._id) {
-      trackClick(ad._id).catch((err) => {
+    if (ad._id || ad.id) {
+      trackClick(ad._id || ad.id).catch((err) => {
         console.warn("Click tracking failed:", err.message);
       });
     }
+
+    window.open(url.href, "_blank", "noopener,noreferrer");
+  }
+
+  function getImageUrl(ad) {
+    const value = ad.imageUrl || ad.image || ad.image_url || "";
+
+    return typeof value === "string" ? value.trim() : "";
   }
 
   return (
     <main className="public-feed-page">
-      {/* =====================================
-          HERO SECTION
-      ===================================== */}
+      <UserNavbar user={user} onLogout={onLogout} />
 
       <section className="public-feed-hero">
         <div className="public-feed-hero-content">
@@ -177,8 +134,7 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
           </p>
 
           <a href="#advertisements" className="public-feed-hero-button">
-            Explore Advertisements
-            <span aria-hidden="true">↓</span>
+            Explore Advertisements <span>↓</span>
           </a>
 
           <div className="public-feed-scroll-message">
@@ -191,6 +147,7 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
         <div className="public-feed-hero-decoration">
           <div className="public-feed-decoration-circle circle-one" />
           <div className="public-feed-decoration-circle circle-two" />
+
           <div className="public-feed-decoration-card">
             <span className="decoration-card-icon">✦</span>
             <span>Discover more</span>
@@ -199,17 +156,11 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
         </div>
       </section>
 
-      {/* =====================================
-          ADVERTISEMENTS SECTION
-      ===================================== */}
-
       <section className="public-feed-advertisements" id="advertisements">
         <div className="public-feed-section-heading">
           <div>
             <span className="public-feed-eyebrow">FEATURED CONTENT</span>
-
             <h2>Explore Advertisements</h2>
-
             <p>
               Browse the latest advertisements and discover featured products.
             </p>
@@ -240,10 +191,7 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
           <div className="public-feed-state">
             <div className="public-feed-empty-icon">✦</div>
             <h3>No advertisements available</h3>
-            <p>
-              There are no active advertisements at the moment. Please check
-              back later.
-            </p>
+            <p>There are no active advertisements at the moment.</p>
           </div>
         ) : (
           <>
@@ -269,16 +217,14 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
                 >
                   <div className="feed-grid">
                     {group.map((ad) => {
-                      const imageUrl =
-                        ad.imageUrl || ad.image || ad.image_url || "";
-
+                      const imageUrl = getImageUrl(ad);
                       const adId = ad._id || ad.id;
 
                       return (
                         <article
                           className="feed-card feed-card-animate"
                           key={adId}
-                          data-ad-id={ad._id || ""}
+                          data-ad-id={adId || ""}
                           ref={(element) => {
                             const cardIndex = activeAds.indexOf(ad);
                             adCardRefs.current[cardIndex] = element;
@@ -289,17 +235,19 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
                               <img
                                 src={imageUrl}
                                 alt={ad.title || "Advertisement"}
-                                loading={index === 0 ? "eager" : "lazy"}
+                                loading="lazy"
                                 onError={(event) => {
-                                  event.currentTarget.classList.add(
-                                    "feed-image-hidden",
+                                  event.currentTarget.style.display = "none";
+                                  event.currentTarget.parentElement.classList.add(
+                                    "image-load-failed",
                                   );
                                 }}
                               />
                             ) : null}
 
                             <div className="feed-image-placeholder">
-                              Image unavailable
+                              <span>✦</span>
+                              <strong>Image unavailable</strong>
                             </div>
 
                             <span className="feed-label">Sponsored</span>
@@ -317,16 +265,22 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
                                 "Discover more about this featured advertisement."}
                             </p>
 
-                            {ad.productUrl && (
-                              <button
-                                type="button"
-                                className="feed-visit-link"
-                                onClick={() => openProductWebsite(ad)}
-                              >
-                                Visit Website
-                                <span aria-hidden="true">↗</span>
-                              </button>
-                            )}
+                            <div className="feed-card-action">
+                              {ad.productUrl ? (
+                                <button
+                                  type="button"
+                                  className="feed-visit-link"
+                                  onClick={() => openProductWebsite(ad)}
+                                >
+                                  Visit Website <span>↗</span>
+                                </button>
+                              ) : (
+                                <span
+                                  className="feed-visit-placeholder"
+                                  aria-hidden="true"
+                                />
+                              )}
+                            </div>
                           </div>
                         </article>
                       );

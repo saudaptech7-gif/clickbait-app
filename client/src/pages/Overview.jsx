@@ -1,10 +1,21 @@
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { getDemoBalance } from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
 import StatCard from "../components/StatCard";
 
 export default function Overview({ ads = [], loading, error }) {
   const navigate = useNavigate();
+  const [demoBalance, setDemoBalance] = useState({ totalClicks: 0, totalDemoBalance: 0 });
+  const [balanceError, setBalanceError] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    getDemoBalance(token)
+      .then(setDemoBalance)
+      .catch((err) => setBalanceError(err.message || "Unable to load demo balance."));
+  }, []);
 
   const stats = useMemo(() => {
     const impressions = ads.reduce(
@@ -60,6 +71,19 @@ export default function Overview({ ads = [], loading, error }) {
           View analytics →
         </Link>
       </div>
+
+      <section className="demo-balance-panel">
+        <div>
+          <h2>click balance</h2>
+          <p>only estimate.</p>
+        </div>
+        <div className="demo-balance-card">
+          <p className="stat-label">Simulated balance</p>
+          <h3 className="demo-balance-value">${Number(demoBalance.totalDemoBalance || 0).toFixed(2)}</h3>
+          <p className="stat-description">{Number(demoBalance.totalClicks || 0).toLocaleString()} recorded clicks</p>
+          {balanceError && <p className="notice notice-error">{balanceError}</p>}
+        </div>
+      </section>
 
       <div className="stats-grid">
         <StatCard

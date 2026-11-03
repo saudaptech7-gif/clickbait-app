@@ -164,3 +164,11 @@ export function trackClick(id) {
     method: "POST",
   });
 }
+
+
+// Get admin-only simulated click balance (not real Stripe funds).
+export function getDemoBalance(token) {
+  return request("/api/ads/admin/demo-balance", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}

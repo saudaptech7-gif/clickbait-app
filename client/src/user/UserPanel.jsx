@@ -1,22 +1,11 @@
 import { Link } from "react-router-dom";
+import UserNavbar from "../components/UserNavbar";
 
 export default function UserPanel({ user, onLogout }) {
   return (
     <main className="user-panel-page">
       <div className="user-dashboard">
-        <header className="user-dashboard-header">
-          <Link to="/user-panel" className="user-logo">
-            Clickbait App
-          </Link>
-
-          <div className="user-header-actions">
-            <span className="user-name">{user?.name || "User"}</span>
-
-            <button onClick={onLogout} className="user-logout-btn">
-              Logout
-            </button>
-          </div>
-        </header>
+        <UserNavbar user={user} onLogout={onLogout} />
 
         <section className="user-welcome">
           <div>
