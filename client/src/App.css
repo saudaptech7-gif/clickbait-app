@@ -1187,3 +1187,27 @@ button:disabled {
     font-size: 11px;
   }
 }
+
+/* Admin-only simulated click balance */
+.demo-balance-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 24px 0;
+  padding: 22px 24px;
+  border: 1px solid #e7e9f3;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.demo-balance-panel h2 { margin: 0 0 7px; }
+.demo-balance-panel p { margin: 0; color: #778096; }
+.demo-balance-card { min-width: 210px; padding: 16px 20px; border-radius: 12px; background: #f3f4ff; }
+.demo-balance-value { margin: 5px 0; color: #4338ca; font-size: 30px; }
+.demo-balance-card .notice { margin-top: 10px; }
+
+@media (max-width: 650px) {
+  .demo-balance-panel { align-items: stretch; flex-direction: column; padding: 18px; }
+  .demo-balance-card { min-width: 0; }
+}

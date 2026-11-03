@@ -3407,3 +3407,294 @@ h4 {
     padding: 19px !important;
   }
 }
+
+/* =========================================
+   USER NAVBAR
+========================================= */
+
+.user-navbar {
+  position: sticky;
+  top: 12px;
+  z-index: 100;
+  width: 100%;
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  padding: 14px 25px;
+  margin-bottom: 25px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #e8eaf2;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(28, 35, 65, 0.07);
+  backdrop-filter: blur(15px);
+}
+
+.user-navbar-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #202943;
+  font-size: 22px;
+  font-weight: 850;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.user-navbar-logo>span:last-child {
+  color: #6256e8;
+}
+
+.user-logo-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #6559ed, #8b5cf6);
+  color: #fff;
+}
+
+.user-navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.user-nav-link {
+  padding: 11px 16px;
+  border-radius: 9px;
+  color: #737b90;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: 0.2s ease;
+}
+
+.user-nav-link:hover,
+.user-nav-link.active {
+  background: #f0efff;
+  color: #6256e8;
+}
+
+.user-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-navbar-name {
+  color: #30394f;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.user-navbar-logout {
+  padding: 10px 17px;
+  border: 1px solid #fee0e0;
+  border-radius: 9px;
+  background: #fff1f1;
+  color: #dc4545;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.user-navbar-logout:hover {
+  background: #dc4545;
+  color: #fff;
+}
+
+/* Dashboard navbar layout */
+.user-panel-page .user-navbar {
+  margin-bottom: 25px;
+}
+
+/* =========================================
+   AD CARD - SAME SIZE
+========================================= */
+
+.public-feed-page .feed-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  gap: 25px !important;
+}
+
+.public-feed-page .feed-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 490px !important;
+  min-height: 490px !important;
+  max-height: 490px !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+}
+
+/* Same image frame for every ad */
+.public-feed-page .feed-image-wrap {
+  position: relative !important;
+  flex: 0 0 220px !important;
+  width: 100% !important;
+  height: 220px !important;
+  min-height: 220px !important;
+  max-height: 220px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  background: #f3f4f8 !important;
+}
+
+/* Show complete ad image instead of cropping it */
+.public-feed-page .feed-image-wrap img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  background: #f3f4f8 !important;
+}
+
+/* Image fallback */
+.public-feed-page .feed-image-placeholder {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  background: #f3f4f8;
+  color: #9299aa;
+  font-size: 13px;
+}
+
+.public-feed-page .feed-image-placeholder span {
+  font-size: 28px;
+  color: #7569ed;
+}
+
+.public-feed-page .feed-image-wrap.image-load-failed .feed-image-placeholder {
+  display: flex !important;
+}
+
+/* Content uses remaining fixed card height */
+.public-feed-page .feed-card-content {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  padding: 18px !important;
+  overflow: hidden !important;
+}
+
+.public-feed-page .feed-card-content h3 {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  overflow: hidden !important;
+  min-height: 52px !important;
+}
+
+.public-feed-page .feed-card-content p {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 3 !important;
+  overflow: hidden !important;
+  min-height: 65px !important;
+  margin-bottom: 10px !important;
+}
+
+/* Reserve same button space on every card */
+.public-feed-page .feed-card-action {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 42px !important;
+  margin-top: auto !important;
+}
+
+.public-feed-page .feed-visit-link,
+.public-feed-page .feed-visit-placeholder {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 145px !important;
+  height: 40px !important;
+  border-radius: 9px !important;
+}
+
+.public-feed-page .feed-visit-link {
+  gap: 8px !important;
+  margin: 0 !important;
+  border: none !important;
+  background: #6256e8 !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  cursor: pointer !important;
+}
+
+.public-feed-page .feed-visit-link:hover {
+  background: #5045d5 !important;
+}
+
+.public-feed-page .feed-visit-placeholder {
+  visibility: hidden !important;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1000px) {
+  .public-feed-page .feed-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .user-navbar {
+    position: relative;
+    top: auto;
+    flex-wrap: wrap;
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .user-navbar-links {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .user-navbar-actions {
+    margin-left: auto;
+  }
+
+  .user-navbar-name {
+    display: none;
+  }
+
+  .public-feed-page .feed-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .public-feed-page .feed-card {
+    height: 470px !important;
+    min-height: 470px !important;
+    max-height: 470px !important;
+  }
+
+  .public-feed-page .feed-image-wrap {
+    flex-basis: 210px !important;
+    height: 210px !important;
+    min-height: 210px !important;
+    max-height: 210px !important;
+  }
+}

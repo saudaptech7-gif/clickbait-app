@@ -25,8 +25,8 @@ const upload = multer({
 
 // Practice/demo calculation only.
 // $0.001 per recorded impression.
-// Clicks do not generate simulated revenue.
-const SIMULATED_REVENUE_PER_IMPRESSION = 0.001;
+// Demo-only click balance. This is not real money and is never sent to Stripe.
+const SIMULATED_REVENUE_PER_CLICK = [1, 2];
 
 // =====================================
 // CSV PARSER
@@ -180,6 +180,50 @@ router.get("/", async (req, res) => {
 });
 
 // =====================================
+// ADMIN: GET ALL ADS (ACTIVE + PAUSED)
+// =====================================
+
+router.get("/admin/all", protect, adminOnly, async (req, res) => {
+  try {
+    const ads = await Ad.find({}).sort({ createdAt: -1 });
+    return res.json({ success: true, count: ads.length, ads });
+  } catch (error) {
+    console.error("Admin fetch ads error:", error.message);
+    return res.status(500).json({ success: false, message: "Failed to fetch ads." });
+  }
+});
+
+// =====================================
+// ADMIN: GET SIMULATED CLICK BALANCE
+// =====================================
+
+router.get("/admin/demo-balance", protect, adminOnly, async (req, res) => {
+  try {
+    const [summary] = await AdEvent.aggregate([
+      { $match: { eventType: "click" } },
+      {
+        $group: {
+          _id: null,
+          totalClicks: { $sum: 1 },
+          totalDemoBalance: { $sum: "$simulatedRevenue" },
+        },
+      },
+    ]);
+
+    return res.json({
+      success: true,
+      totalClicks: summary?.totalClicks || 0,
+      totalDemoBalance: Number((summary?.totalDemoBalance || 0).toFixed(2)),
+      currency: "USD",
+      isDemo: true,
+    });
+  } catch (error) {
+    console.error("Demo balance error:", error.message);
+    return res.status(500).json({ success: false, message: "Failed to load demo balance." });
+  }
+});
+
+// =====================================
 // PUBLIC: RECORD IMPRESSION
 // =====================================
 
@@ -219,7 +263,7 @@ router.post("/:id/impression", async (req, res) => {
     await AdEvent.create({
       ad: ad._id,
       eventType: "impression",
-      simulatedRevenue: SIMULATED_REVENUE_PER_IMPRESSION,
+      simulatedRevenue: 0,
     });
 
     return res.status(201).json({
@@ -276,7 +320,9 @@ router.post("/:id/click", async (req, res) => {
     await AdEvent.create({
       ad: ad._id,
       eventType: "click",
-      simulatedRevenue: 0,
+      simulatedRevenue: SIMULATED_REVENUE_PER_CLICK[
+        Math.floor(Math.random() * SIMULATED_REVENUE_PER_CLICK.length)
+      ],
     });
 
     return res.status(201).json({
