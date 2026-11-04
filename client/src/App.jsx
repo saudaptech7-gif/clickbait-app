@@ -1,4 +1,3 @@
-
 /* eslint-disable no-undef */
 /* eslint-disable react-hooks/set-state-in-effect */
 
@@ -21,6 +20,7 @@ import BulkUpload from "./pages/BulkUpload";
 import Analytics from "./pages/Analytics";
 import Feed from "./pages/Feed";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import UserPanel from "./user/UserPanel";
 
 import {
@@ -350,6 +350,21 @@ function AppContent() {
             />
           ) : (
             <Login onLogin={handleLogin} />
+          )
+        }
+      />
+
+      {/* USER SIGNUP */}
+      <Route
+        path="/signup"
+        element={
+          user ? (
+            <Navigate
+              to={user.role === "admin" ? "/admin" : "/user-panel"}
+              replace
+            />
+          ) : (
+            <Signup onLogin={handleLogin} />
           )
         }
       />

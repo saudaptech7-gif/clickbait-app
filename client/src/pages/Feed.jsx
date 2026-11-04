@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { trackImpression, trackClick } from "../services/api";
 import UserNavbar from "../components/UserNavbar";
 
@@ -9,50 +9,53 @@ export default function Feed({
   user,
   onLogout,
 }) {
-  const [page, setPage] = useState(1);
-  const pageRefs = useRef([]);
   const adCardRefs = useRef([]);
   const trackedImpressions = useRef(new Set());
 
-  const activeAds = (Array.isArray(ads) ? ads : []).filter(
-    (ad) => ad && String(ad.status || "active").toLowerCase() === "active",
+  const activeAds = useMemo(
+    () =>
+      (Array.isArray(ads) ? ads : []).filter(
+        (ad) => ad && String(ad.status || "active").toLowerCase() === "active",
+      ),
+    [ads],
   );
 
-  const pageSize = 3;
-  const adPages = [];
-
-  for (let i = 0; i < activeAds.length; i += pageSize) {
-    adPages.push(activeAds.slice(i, i + pageSize));
-  }
-
+  // Instagram-style scroll reveal animation
   useEffect(() => {
-    if (loading || !adPages.length) return;
+    if (loading || activeAds.length === 0) return;
 
-    const sections = pageRefs.current.filter(Boolean);
+    const cards = adCardRefs.current.filter(Boolean);
 
-    if (!("IntersectionObserver" in window)) return;
+    if (!("IntersectionObserver" in window)) {
+      cards.forEach((card) => {
+        card.classList.add("is-visible");
+      });
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const currentPage = Number(entry.target.dataset.page);
+          if (!entry.isIntersecting) return;
 
-            if (currentPage) setPage(currentPage);
-          }
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
         });
       },
-      { threshold: 0.2 },
+      {
+        threshold: 0.12,
+        rootMargin: "0px 0px -40px 0px",
+      },
     );
 
-    sections.forEach((section) => observer.observe(section));
+    cards.forEach((card) => observer.observe(card));
 
     return () => observer.disconnect();
-  }, [loading, activeAds.length]);
+  }, [loading, activeAds]);
 
-  // Impression tracking
+  // Track ad impressions
   useEffect(() => {
-    if (loading || !activeAds.length) return;
+    if (loading || activeAds.length === 0) return;
 
     const cards = adCardRefs.current.filter(Boolean);
 
@@ -84,6 +87,7 @@ export default function Feed({
     return () => observer.disconnect();
   }, [loading, activeAds]);
 
+  // Open product website
   function openProductWebsite(ad) {
     if (!ad?.productUrl) return;
 
@@ -98,8 +102,10 @@ export default function Feed({
       return;
     }
 
-    if (ad._id || ad.id) {
-      trackClick(ad._id || ad.id).catch((err) => {
+    const adId = ad._id || ad.id;
+
+    if (adId) {
+      trackClick(adId).catch((err) => {
         console.warn("Click tracking failed:", err.message);
       });
     }
@@ -107,9 +113,9 @@ export default function Feed({
     window.open(url.href, "_blank", "noopener,noreferrer");
   }
 
+  // Get advertisement image
   function getImageUrl(ad) {
     const value = ad.imageUrl || ad.image || ad.image_url || "";
-
     return typeof value === "string" ? value.trim() : "";
   }
 
@@ -117,6 +123,7 @@ export default function Feed({
     <main className="public-feed-page">
       <UserNavbar user={user} onLogout={onLogout} />
 
+      {/* Hero Section */}
       <section className="public-feed-hero">
         <div className="public-feed-hero-content">
           <span className="public-feed-eyebrow">
@@ -156,11 +163,14 @@ export default function Feed({
         </div>
       </section>
 
+      {/* Advertisements Section */}
       <section className="public-feed-advertisements" id="advertisements">
         <div className="public-feed-section-heading">
           <div>
             <span className="public-feed-eyebrow">FEATURED CONTENT</span>
+
             <h2>Explore Advertisements</h2>
+
             <p>
               Browse the latest advertisements and discover featured products.
             </p>
@@ -198,96 +208,84 @@ export default function Feed({
             <div className="public-feed-toolbar">
               <span>Showing {activeAds.length} advertisements</span>
 
-              <span className="public-feed-page-indicator">
-                Page {page} of {adPages.length}
-              </span>
+              <span>All active advertisements</span>
             </div>
 
-            <div className="public-feed-pages">
-              {adPages.map((group, index) => (
-                <section
-                  className={`feed-page-section ${
-                    index === 0 ? "is-visible" : ""
-                  }`}
-                  key={group[0]?._id || group[0]?.id || index}
-                  data-page={index + 1}
-                  ref={(element) => {
-                    pageRefs.current[index] = element;
-                  }}
-                >
-                  <div className="feed-grid">
-                    {group.map((ad) => {
-                      const imageUrl = getImageUrl(ad);
-                      const adId = ad._id || ad.id;
+            <div className="feed-grid">
+              {activeAds.map((ad, index) => {
+                const imageUrl = getImageUrl(ad);
+                const adId = ad._id || ad.id;
 
-                      return (
-                        <article
-                          className="feed-card feed-card-animate"
-                          key={adId}
-                          data-ad-id={adId || ""}
-                          ref={(element) => {
-                            const cardIndex = activeAds.indexOf(ad);
-                            adCardRefs.current[cardIndex] = element;
+                return (
+                  <article
+                    className="feed-card feed-card-animate"
+                    key={adId || index}
+                    data-ad-id={adId || ""}
+                    ref={(element) => {
+                      adCardRefs.current[index] = element;
+                    }}
+                    style={{
+                      transitionDelay: `${(index % 3) * 100}ms`,
+                    }}
+                  >
+                    <div className="feed-image-wrap">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={ad.title || "Advertisement"}
+                          loading="lazy"
+                          onError={(event) => {
+                            event.currentTarget.classList.add(
+                              "feed-image-hidden",
+                            );
+
+                            event.currentTarget.parentElement.classList.add(
+                              "image-load-failed",
+                            );
                           }}
-                        >
-                          <div className="feed-image-wrap">
-                            {imageUrl ? (
-                              <img
-                                src={imageUrl}
-                                alt={ad.title || "Advertisement"}
-                                loading="lazy"
-                                onError={(event) => {
-                                  event.currentTarget.style.display = "none";
-                                  event.currentTarget.parentElement.classList.add(
-                                    "image-load-failed",
-                                  );
-                                }}
-                              />
-                            ) : null}
+                        />
+                      ) : null}
 
-                            <div className="feed-image-placeholder">
-                              <span>✦</span>
-                              <strong>Image unavailable</strong>
-                            </div>
+                      <div className="feed-image-placeholder">
+                        <span>✦</span>
+                        <strong>Image unavailable</strong>
+                      </div>
 
-                            <span className="feed-label">Sponsored</span>
-                          </div>
+                      <span className="feed-label">Sponsored</span>
+                    </div>
 
-                          <div className="feed-card-content">
-                            <span className="feed-card-category">
-                              FEATURED ADVERTISEMENT
-                            </span>
+                    <div className="feed-card-content">
+                      <span className="feed-card-category">
+                        FEATURED ADVERTISEMENT
+                      </span>
 
-                            <h3>{ad.title || "Untitled advertisement"}</h3>
+                      <h3>{ad.title || "Untitled advertisement"}</h3>
 
-                            <p>
-                              {ad.description ||
-                                "Discover more about this featured advertisement."}
-                            </p>
+                      <p>
+                        {ad.description ||
+                          "Discover more about this featured advertisement."}
+                      </p>
 
-                            <div className="feed-card-action">
-                              {ad.productUrl ? (
-                                <button
-                                  type="button"
-                                  className="feed-visit-link"
-                                  onClick={() => openProductWebsite(ad)}
-                                >
-                                  Visit Website <span>↗</span>
-                                </button>
-                              ) : (
-                                <span
-                                  className="feed-visit-placeholder"
-                                  aria-hidden="true"
-                                />
-                              )}
-                            </div>
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
+                      <div className="feed-card-action">
+                        {ad.productUrl ? (
+                          <button
+                            type="button"
+                            className="feed-visit-link"
+                            onClick={() => openProductWebsite(ad)}
+                          >
+                            Visit Website <span>↗</span>
+                          </button>
+                        ) : (
+                          <span
+                            className="feed-visit-placeholder"
+                            aria-hidden="true"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
 
             <div className="public-feed-bottom-message">
