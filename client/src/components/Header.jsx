@@ -52,7 +52,11 @@ export default function Header({ onMenuClick, onLogout }) {
           <small>Campaign manager</small>
         </div>
 
-        <button type="button" className="logout-button" onClick={onLogout}>
+        <button
+          type="button"
+          className="logout-button"
+          onClick={onLogout}
+        >
           Logout
         </button>
       </div>

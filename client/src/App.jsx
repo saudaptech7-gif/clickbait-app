@@ -49,7 +49,9 @@ function PublicFeed({ user, onLogout }) {
           setAds(Array.isArray(records) ? records : []);
         }
       } catch (err) {
-        if (active) setError(err.message || "Unable to load ads.");
+        if (active) {
+          setError(err.message || "Unable to load ads.");
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -120,7 +122,7 @@ function Dashboard({ token, onLogout }) {
 
   async function handleDelete(ad) {
     const confirmed = window.confirm(
-      `Delete "${ad.title || "this advertisement"}"? This cannot be undone.`
+      `Delete "${ad.title || "this advertisement"}"? This cannot be undone.`,
     );
 
     if (!confirmed) return;
@@ -136,6 +138,7 @@ function Dashboard({ token, onLogout }) {
   async function handleToggle(ad) {
     try {
       const status = ad.status === "paused" ? "active" : "paused";
+
       await updateAd(ad._id || ad.id, { status }, token);
       await loadAds();
     } catch (err) {
@@ -170,10 +173,7 @@ function Dashboard({ token, onLogout }) {
         />
       )}
 
-      <Sidebar
-        open={sidebarOpen}
-        onNavigate={() => setSidebarOpen(false)}
-      />
+      <Sidebar open={sidebarOpen} />
 
       <div className="main-area">
         <Header
@@ -220,13 +220,7 @@ function Dashboard({ token, onLogout }) {
 
             <Route
               path="analytics"
-              element={
-                <Analytics
-                  ads={ads}
-                  loading={loading}
-                  error={error}
-                />
-              }
+              element={<Analytics ads={ads} loading={loading} error={error} />}
             />
 
             <Route path="*" element={<Navigate to="/admin" replace />} />
@@ -250,6 +244,7 @@ function AppContent() {
   const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [checkingAuth, setCheckingAuth] = useState(true);
 
+  // RESTORE LOGIN SESSION
   useEffect(() => {
     let active = true;
 
@@ -270,7 +265,9 @@ function AppContent() {
           throw new Error("Invalid user session.");
         }
 
-        if (active) setUser(currentUser);
+        if (active) {
+          setUser(currentUser);
+        }
       } catch {
         localStorage.removeItem("token");
 
@@ -279,7 +276,9 @@ function AppContent() {
           setUser(null);
         }
       } finally {
-        if (active) setCheckingAuth(false);
+        if (active) {
+          setCheckingAuth(false);
+        }
       }
     }
 
@@ -291,7 +290,7 @@ function AppContent() {
     };
   }, [token]);
 
-  // ADMIN AND USER LOGIN
+  // LOGIN NAVIGATION - ONLY HERE
   function handleLogin(result) {
     if (!result?.token || !result?.user) {
       throw new Error("Invalid login response.");
@@ -313,6 +312,7 @@ function AppContent() {
     }
   }
 
+  // LOGOUT
   function handleLogout() {
     localStorage.removeItem("token");
     setToken(null);
@@ -326,20 +326,15 @@ function AppContent() {
 
   return (
     <Routes>
-      {/* PUBLIC ADS */}
+      {/* PUBLIC FEED */}
       <Route
         path="/"
-        element={
-          <PublicFeed user={user} onLogout={handleLogout} />
-        }
+        element={<PublicFeed user={user} onLogout={handleLogout} />}
       />
 
-      <Route
-        path="/feed"
-        element={<Navigate to="/" replace />}
-      />
+      <Route path="/feed" element={<Navigate to="/" replace />} />
 
-      {/* USER LOGIN */}
+      {/* LOGIN */}
       <Route
         path="/login"
         element={
@@ -354,7 +349,7 @@ function AppContent() {
         }
       />
 
-      {/* USER SIGNUP */}
+      {/* SIGNUP */}
       <Route
         path="/signup"
         element={
@@ -383,7 +378,7 @@ function AppContent() {
         }
       />
 
-      {/* USER DASHBOARD */}
+      {/* USER PANEL */}
       <Route
         path="/user-panel"
         element={
@@ -397,7 +392,7 @@ function AppContent() {
         }
       />
 
-      {/* ADMIN DASHBOARD */}
+      {/* ADMIN ROUTES */}
       <Route
         path="/admin/*"
         element={
@@ -411,6 +406,7 @@ function AppContent() {
         }
       />
 
+      {/* UNKNOWN ROUTES */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

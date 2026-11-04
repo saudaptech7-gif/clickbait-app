@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { loginUser } from "../services/api";
 
 export default function Login({ onLogin }) {
-  const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -13,56 +11,66 @@ export default function Login({ onLogin }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  function handleChange(e) {
+    const { name, value } = e.target;
 
-  const handleSubmit = async (e) => {
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
+
     setError("");
     setLoading(true);
 
     try {
       const result = await loginUser(formData);
 
-      if (!result.token || !result.user) {
-        throw new Error("Invalid login response from server");
+      if (!result?.token || !result?.user) {
+        throw new Error("Invalid login response from server.");
       }
 
+      if (!["admin", "user"].includes(result.user.role)) {
+        throw new Error("Invalid account role.");
+      }
+
+      // App.jsx handles navigation after login.
       onLogin(result);
-
-      if (result.user.role === "admin") {
-        navigate("/");
-      } else {
-        navigate("/user-panel");
-      }
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Login failed. Please try again.",
-      );
+      setError(err.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <main className="auth-page">
       <div className="auth-card">
-        <div className="auth-heading">
-          <h1>Welcome Back</h1>
-          <p>Login to your Clickbait App account</p>
+        <div className="auth-brand">
+          <span className="brand-mark">C</span>
+          <span>
+            Clickbait<span className="brand-dot">.</span>
+          </span>
         </div>
 
-        {error && <div className="auth-error">{error}</div>}
+        <h1>Welcome Back</h1>
+        <p className="auth-subtitle">
+          Login to continue to your account.
+        </p>
+
+        {error && (
+          <div className="auth-error">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
-          <div className="auth-field">
+          <div className="form-group">
             <label htmlFor="email">Email Address</label>
+
             <input
               id="email"
               type="email"
@@ -74,8 +82,9 @@ export default function Login({ onLogin }) {
             />
           </div>
 
-          <div className="auth-field">
+          <div className="form-group">
             <label htmlFor="password">Password</label>
+
             <input
               id="password"
               type="password"
@@ -87,13 +96,18 @@ export default function Login({ onLogin }) {
             />
           </div>
 
-          <button type="submit" className="auth-submit-btn" disabled={loading}>
+          <button
+            type="submit"
+            className="auth-submit"
+            disabled={loading}
+          >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
         <p className="auth-switch">
-          Don't have an account? <Link to="/signup">Create Account</Link>
+          Don't have an account?{" "}
+          <Link to="/signup">Create Account</Link>
         </p>
       </div>
     </main>
