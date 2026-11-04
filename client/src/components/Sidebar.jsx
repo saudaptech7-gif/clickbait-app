@@ -9,10 +9,10 @@ const links = [
   { to: "/", label: "Public Feed", icon: "▷", end: true },
 ];
 
-export default function Sidebar({ open, onNavigate }) {
+export default function Sidebar({ open }) {
   return (
     <aside className={`sidebar ${open ? "sidebar-open" : ""}`}>
-      <NavLink to="/admin" className="brand" onClick={onNavigate}>
+      <NavLink to="/admin" end className="brand">
         <span className="brand-mark">C</span>
         <span>
           Clickbait<span className="brand-dot">.</span>
@@ -27,7 +27,6 @@ export default function Sidebar({ open, onNavigate }) {
             key={link.to}
             to={link.to}
             end={link.end}
-            onClick={onNavigate}
             className={({ isActive }) =>
               `nav-link ${isActive ? "nav-link-active" : ""}`
             }
@@ -43,7 +42,6 @@ export default function Sidebar({ open, onNavigate }) {
       <div className="sidebar-bottom">
         <div className="sidebar-status">
           <span className="status-dot" />
-
           <div>
             <strong>Admin Workspace</strong>
             <small>Campaign management</small>
