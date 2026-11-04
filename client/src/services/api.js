@@ -28,7 +28,6 @@ async function request(path, options = {}) {
 // AUTHENTICATION
 // =====================================
 
-// Signup
 export function signupUser(values) {
   return request("/api/auth/signup", {
     method: "POST",
@@ -39,7 +38,6 @@ export function signupUser(values) {
   });
 }
 
-// Login
 export function loginUser(values) {
   return request("/api/auth/login", {
     method: "POST",
@@ -50,7 +48,6 @@ export function loginUser(values) {
   });
 }
 
-// Get current logged-in user
 export function getCurrentUser(token) {
   return request("/api/auth/me", {
     headers: {
@@ -63,7 +60,6 @@ export function getCurrentUser(token) {
 // ADS
 // =====================================
 
-// Get ads
 export async function getAds(token) {
   const endpoint = token ? "/api/ads/admin/all" : "/api/ads";
 
@@ -71,14 +67,11 @@ export async function getAds(token) {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 
-  if (Array.isArray(data)) {
-    return data;
-  }
+  if (Array.isArray(data)) return data;
 
   return Array.isArray(data.ads) ? data.ads : [];
 }
 
-// Create ad - Admin only
 export function createAd(ad, token) {
   return request("/api/ads", {
     method: "POST",
@@ -90,11 +83,8 @@ export function createAd(ad, token) {
   });
 }
 
-// Update ad - Admin only
 export function updateAd(id, changes, token) {
-  if (!id) {
-    throw new Error("Ad ID is missing.");
-  }
+  if (!id) throw new Error("Ad ID is missing.");
 
   return request(`/api/ads/${encodeURIComponent(id)}`, {
     method: "PATCH",
@@ -106,11 +96,8 @@ export function updateAd(id, changes, token) {
   });
 }
 
-// Delete ad - Admin only
 export function deleteAd(id, token) {
-  if (!id) {
-    throw new Error("Ad ID is missing.");
-  }
+  if (!id) throw new Error("Ad ID is missing.");
 
   return request(`/api/ads/${encodeURIComponent(id)}`, {
     method: "DELETE",
@@ -122,14 +109,10 @@ export function deleteAd(id, token) {
 // BULK UPLOAD
 // =====================================
 
-// Upload CSV or JSON file - Admin only
 export function uploadAdsFile(file, token) {
-  if (!file) {
-    throw new Error("Please select a CSV or JSON file.");
-  }
+  if (!file) throw new Error("Please select a CSV or JSON file.");
 
   const formData = new FormData();
-
   formData.append("file", file);
 
   return request("/api/ads/bulk", {
@@ -143,30 +126,26 @@ export function uploadAdsFile(file, token) {
 // AD TRACKING
 // =====================================
 
-// Record impression
 export function trackImpression(id) {
-  if (!id) {
-    throw new Error("Ad ID is missing.");
-  }
+  if (!id) throw new Error("Ad ID is missing.");
 
   return request(`/api/ads/${encodeURIComponent(id)}/impression`, {
     method: "POST",
   });
 }
 
-// Record click
 export function trackClick(id) {
-  if (!id) {
-    throw new Error("Ad ID is missing.");
-  }
+  if (!id) throw new Error("Ad ID is missing.");
 
   return request(`/api/ads/${encodeURIComponent(id)}/click`, {
     method: "POST",
   });
 }
 
+// =====================================
+// ADMIN DEMO BALANCE
+// =====================================
 
-// Get admin-only simulated click balance (not real Stripe funds).
 export function getDemoBalance(token) {
   return request("/api/ads/admin/demo-balance", {
     headers: { Authorization: `Bearer ${token}` },
