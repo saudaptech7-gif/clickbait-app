@@ -11,6 +11,7 @@ export default function Feed({
 }) {
   const adCardRefs = useRef([]);
   const trackedImpressions = useRef(new Set());
+  const trackedClicks = useRef(new Set());
 
   const activeAds = useMemo(
     () =>
@@ -20,45 +21,24 @@ export default function Feed({
     [ads],
   );
 
-  // Instagram-style scroll reveal animation
+  // Product website wale ads sabse upar
+  const sortedAds = useMemo(() => {
+    return [...activeAds].sort((a, b) => {
+      const aClickable =
+        typeof a.productUrl === "string" && a.productUrl.trim() !== "";
+
+      const bClickable =
+        typeof b.productUrl === "string" && b.productUrl.trim() !== "";
+
+      return Number(bClickable) - Number(aClickable);
+    });
+  }, [activeAds]);
+
+  // Impression tracking
   useEffect(() => {
-    if (loading || activeAds.length === 0) return;
+    if (loading || !sortedAds.length) return;
 
     const cards = adCardRefs.current.filter(Boolean);
-
-    if (!("IntersectionObserver" in window)) {
-      cards.forEach((card) => {
-        card.classList.add("is-visible");
-      });
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
-        });
-      },
-      {
-        threshold: 0.12,
-        rootMargin: "0px 0px -40px 0px",
-      },
-    );
-
-    cards.forEach((card) => observer.observe(card));
-
-    return () => observer.disconnect();
-  }, [loading, activeAds]);
-
-  // Track ad impressions
-  useEffect(() => {
-    if (loading || activeAds.length === 0) return;
-
-    const cards = adCardRefs.current.filter(Boolean);
-
     if (!("IntersectionObserver" in window)) return;
 
     const observer = new IntersectionObserver(
@@ -67,13 +47,13 @@ export default function Feed({
           if (!entry.isIntersecting) return;
 
           const adId = entry.target.dataset.adId;
-
           if (!adId || trackedImpressions.current.has(adId)) return;
 
           trackedImpressions.current.add(adId);
 
           trackImpression(adId).catch((err) => {
             console.warn("Impression tracking failed:", err.message);
+            trackedImpressions.current.delete(adId);
           });
 
           observer.unobserve(entry.target);
@@ -85,17 +65,16 @@ export default function Feed({
     cards.forEach((card) => observer.observe(card));
 
     return () => observer.disconnect();
-  }, [loading, activeAds]);
+  }, [loading, sortedAds]);
 
-  // Open product website
-  function openProductWebsite(ad) {
+  // Product website open aur click tracking
+  async function openProductWebsite(ad) {
     if (!ad?.productUrl) return;
 
     let url;
 
     try {
       url = new URL(ad.productUrl);
-
       if (!["https:", "http:"].includes(url.protocol)) return;
     } catch {
       console.error("Invalid product website URL.");
@@ -104,16 +83,36 @@ export default function Feed({
 
     const adId = ad._id || ad.id;
 
-    if (adId) {
-      trackClick(adId).catch((err) => {
-        console.warn("Click tracking failed:", err.message);
-      });
+    if (!adId) {
+      window.open(url.href, "_blank", "noopener,noreferrer");
+      return;
     }
 
-    window.open(url.href, "_blank", "noopener,noreferrer");
+    const clickKey = String(adId);
+    if (trackedClicks.current.has(clickKey)) return;
+
+    trackedClicks.current.add(clickKey);
+
+    const newWindow = window.open(url.href, "_blank", "noopener,noreferrer");
+
+    try {
+      const result = await trackClick(adId);
+
+      console.log("Demo click recorded:", {
+        clickId: result.clickId,
+        demoEarning: result.demoEarning,
+        isDemo: result.isDemo,
+      });
+    } catch (err) {
+      console.warn("Click tracking failed:", err.message);
+      trackedClicks.current.delete(clickKey);
+    }
+
+    if (!newWindow) {
+      console.warn("Browser blocked the new tab.");
+    }
   }
 
-  // Get advertisement image
   function getImageUrl(ad) {
     const value = ad.imageUrl || ad.image || ad.image_url || "";
     return typeof value === "string" ? value.trim() : "";
@@ -123,176 +122,128 @@ export default function Feed({
     <main className="public-feed-page">
       <UserNavbar user={user} onLogout={onLogout} />
 
-      {/* Hero Section */}
-      <section className="public-feed-hero">
-        <div className="public-feed-hero-content">
-          <span className="public-feed-eyebrow">
-            DISCOVER • EXPLORE • EXPERIENCE
-          </span>
-
-          <h1>
-            Discover Something
-            <span> Interesting.</span>
-          </h1>
-
-          <p>
-            Explore featured advertisements, discover products, and find
-            something that catches your interest.
-          </p>
-
-          <a href="#advertisements" className="public-feed-hero-button">
-            Explore Advertisements <span>↓</span>
-          </a>
-
-          <div className="public-feed-scroll-message">
-            <span className="public-feed-scroll-icon">↓</span>
-            <strong>Scroll Down for Advertisements</strong>
-            <span>Discover what's featured below</span>
-          </div>
-        </div>
-
-        <div className="public-feed-hero-decoration">
-          <div className="public-feed-decoration-circle circle-one" />
-          <div className="public-feed-decoration-circle circle-two" />
-
-          <div className="public-feed-decoration-card">
-            <span className="decoration-card-icon">✦</span>
-            <span>Discover more</span>
-            <strong>Explore new ideas</strong>
-          </div>
-        </div>
-      </section>
-
-      {/* Advertisements Section */}
-      <section className="public-feed-advertisements" id="advertisements">
-        <div className="public-feed-section-heading">
-          <div>
-            <span className="public-feed-eyebrow">FEATURED CONTENT</span>
-
-            <h2>Explore Advertisements</h2>
-
-            <p>
-              Browse the latest advertisements and discover featured products.
-            </p>
-          </div>
-
-          {!loading && activeAds.length > 0 && (
-            <div className="public-feed-total">
-              <strong>{activeAds.length}</strong>
-              <span>Advertisements</span>
-            </div>
-          )}
-        </div>
-
+      <section className="public-feed-advertisements">
         {error && (
           <div className="public-feed-error" role="alert">
-            <strong>Unable to load advertisements</strong>
-            <p>{error}</p>
+            {error}
           </div>
         )}
 
         {loading ? (
           <div className="public-feed-state">
             <div className="public-feed-loader" />
-            <h3>Loading advertisements</h3>
-            <p>Please wait while we load the latest ads.</p>
           </div>
-        ) : activeAds.length === 0 ? (
-          <div className="public-feed-state">
-            <div className="public-feed-empty-icon">✦</div>
-            <h3>No advertisements available</h3>
-            <p>There are no active advertisements at the moment.</p>
-          </div>
+        ) : sortedAds.length === 0 ? (
+          <div className="public-feed-state">No advertisements available.</div>
         ) : (
-          <>
-            <div className="public-feed-toolbar">
-              <span>Showing {activeAds.length} advertisements</span>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, 50px)",
+              gridAutoRows: "50px",
+              gap: "8px",
+              alignItems: "start",
+            }}
+          >
+            {sortedAds.map((ad, index) => {
+              const imageUrl = getImageUrl(ad);
+              const adId = ad._id || ad.id;
 
-              <span>All active advertisements</span>
-            </div>
-
-            <div className="feed-grid">
-              {activeAds.map((ad, index) => {
-                const imageUrl = getImageUrl(ad);
-                const adId = ad._id || ad.id;
-
-                return (
-                  <article
-                    className="feed-card feed-card-animate"
-                    key={adId || index}
-                    data-ad-id={adId || ""}
-                    ref={(element) => {
-                      adCardRefs.current[index] = element;
-                    }}
+              return (
+                <article
+                  key={adId || index}
+                  data-ad-id={adId || ""}
+                  ref={(element) => {
+                    adCardRefs.current[index] = element;
+                  }}
+                  onClick={() => openProductWebsite(ad)}
+                  role={ad.productUrl ? "link" : undefined}
+                  tabIndex={ad.productUrl ? 0 : undefined}
+                  onKeyDown={(event) => {
+                    if (
+                      ad.productUrl &&
+                      (event.key === "Enter" || event.key === " ")
+                    ) {
+                      event.preventDefault();
+                      openProductWebsite(ad);
+                    }
+                  }}
+                  aria-label={ad.title || "Advertisement"}
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    minWidth: "50px",
+                    minHeight: "50px",
+                    boxSizing: "border-box",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "stretch",
+                    overflow: "hidden",
+                    padding: "2px",
+                    margin: 0,
+                    position: "relative",
+                    background: "#ffffff",
+                    border: "1px solid #dddddd",
+                    borderRadius: "4px",
+                    cursor: ad.productUrl ? "pointer" : "default",
+                  }}
+                >
+                  <div
                     style={{
-                      transitionDelay: `${(index % 3) * 100}ms`,
+                      width: "100%",
+                      height: "30px",
+                      minHeight: "30px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
                     }}
                   >
-                    <div className="feed-image-wrap">
-                      {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt={ad.title || "Advertisement"}
-                          loading="lazy"
-                          onError={(event) => {
-                            event.currentTarget.classList.add(
-                              "feed-image-hidden",
-                            );
-
-                            event.currentTarget.parentElement.classList.add(
-                              "image-load-failed",
-                            );
-                          }}
-                        />
-                      ) : null}
-
-                      <div className="feed-image-placeholder">
-                        <span>✦</span>
-                        <strong>Image unavailable</strong>
-                      </div>
-
-                      <span className="feed-label">Sponsored</span>
-                    </div>
-
-                    <div className="feed-card-content">
-                      <span className="feed-card-category">
-                        FEATURED ADVERTISEMENT
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={ad.title || "Advertisement"}
+                        loading="lazy"
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                          objectPosition: "center",
+                        }}
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <span style={{ fontSize: "12px", color: "#888" }}>
+                        AD
                       </span>
+                    )}
+                  </div>
 
-                      <h3>{ad.title || "Untitled advertisement"}</h3>
-
-                      <p>
-                        {ad.description ||
-                          "Discover more about this featured advertisement."}
-                      </p>
-
-                      <div className="feed-card-action">
-                        {ad.productUrl ? (
-                          <button
-                            type="button"
-                            className="feed-visit-link"
-                            onClick={() => openProductWebsite(ad)}
-                          >
-                            Visit Website <span>↗</span>
-                          </button>
-                        ) : (
-                          <span
-                            className="feed-visit-placeholder"
-                            aria-hidden="true"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-
-            <div className="public-feed-bottom-message">
-              <span>✦</span>
-              You've reached the end of the advertisements.
-            </div>
-          </>
+                  <div
+                    title={ad.title || ""}
+                    style={{
+                      width: "100%",
+                      height: "14px",
+                      minHeight: "14px",
+                      overflow: "hidden",
+                      fontSize: "6px",
+                      lineHeight: "12px",
+                      fontWeight: 600,
+                      color: "#222222",
+                      textAlign: "center",
+                      whiteSpace: "nowrap",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {ad.title || "No title"}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         )}
       </section>
     </main>

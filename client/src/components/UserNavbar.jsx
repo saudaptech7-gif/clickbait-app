@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-export default function UserNavbar({ user, onLogout }) {
+export default function UserNavbar() {
   return (
     <nav className="user-navbar">
       <div className="user-navbar-container">
@@ -13,20 +13,6 @@ export default function UserNavbar({ user, onLogout }) {
           <Link to="/" className="user-nav-btn feed-btn">
             Feed
           </Link>
-
-          {user ? (
-            <button
-              type="button"
-              className="user-nav-btn logout-btn"
-              onClick={onLogout}
-            >
-              Logout
-            </button>
-          ) : (
-            <Link to="/login" className="user-nav-btn login-btn">
-              Login
-            </Link>
-          )}
         </div>
       </div>
     </nav>

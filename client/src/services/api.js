@@ -84,7 +84,9 @@ export function createAd(ad, token) {
 }
 
 export function updateAd(id, changes, token) {
-  if (!id) throw new Error("Ad ID is missing.");
+  if (!id) {
+    throw new Error("Ad ID is missing.");
+  }
 
   return request(`/api/ads/${encodeURIComponent(id)}`, {
     method: "PATCH",
@@ -97,7 +99,9 @@ export function updateAd(id, changes, token) {
 }
 
 export function deleteAd(id, token) {
-  if (!id) throw new Error("Ad ID is missing.");
+  if (!id) {
+    throw new Error("Ad ID is missing.");
+  }
 
   return request(`/api/ads/${encodeURIComponent(id)}`, {
     method: "DELETE",
@@ -110,7 +114,9 @@ export function deleteAd(id, token) {
 // =====================================
 
 export function uploadAdsFile(file, token) {
-  if (!file) throw new Error("Please select a CSV or JSON file.");
+  if (!file) {
+    throw new Error("Please select a CSV or JSON file.");
+  }
 
   const formData = new FormData();
   formData.append("file", file);
@@ -127,7 +133,9 @@ export function uploadAdsFile(file, token) {
 // =====================================
 
 export function trackImpression(id) {
-  if (!id) throw new Error("Ad ID is missing.");
+  if (!id) {
+    throw new Error("Ad ID is missing.");
+  }
 
   return request(`/api/ads/${encodeURIComponent(id)}/impression`, {
     method: "POST",
@@ -135,7 +143,9 @@ export function trackImpression(id) {
 }
 
 export function trackClick(id) {
-  if (!id) throw new Error("Ad ID is missing.");
+  if (!id) {
+    throw new Error("Ad ID is missing.");
+  }
 
   return request(`/api/ads/${encodeURIComponent(id)}/click`, {
     method: "POST",
@@ -148,6 +158,29 @@ export function trackClick(id) {
 
 export function getDemoBalance(token) {
   return request("/api/ads/admin/demo-balance", {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+// =====================================
+// STRIPE TEST PAYMENT
+// =====================================
+
+export function createStripeTestPayment(amount, token) {
+  if (![1, 2].includes(Number(amount))) {
+    throw new Error("Amount must be either $1 or $2.");
+  }
+
+  return request("/api/payments/test-payment", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({
+      amount: Number(amount),
+    }),
   });
 }

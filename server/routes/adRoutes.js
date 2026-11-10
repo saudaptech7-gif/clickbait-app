@@ -1,3 +1,4 @@
+
 const express = require("express");
 const multer = require("multer");
 
@@ -5,6 +6,7 @@ const Ad = require("../models/Ad");
 const AdEvent = require("../models/AdEvent");
 
 const { protect, adminOnly } = require("../middleware/authMiddleware");
+const { createTestPayment } = require("../services/stripeService");
 
 const router = express.Router();
 
@@ -23,9 +25,6 @@ const upload = multer({
 // SIMULATED REVENUE CONFIGURATION
 // =====================================
 
-// Practice/demo calculation only.
-// $0.001 per recorded impression.
-// Demo-only click balance. This is not real money and is never sent to Stripe.
 const SIMULATED_REVENUE_PER_CLICK = [1, 2];
 
 // =====================================
@@ -101,13 +100,9 @@ function parseCSV(text) {
 function normalizeAd(record) {
   return {
     title: String(record.title || "").trim(),
-
     description: String(record.description || "").trim(),
-
     imageUrl: String(record.imageUrl || record.imageurl || "").trim(),
-
     productUrl: String(record.productUrl || record.producturl || "").trim(),
-
     dimensions: String(record.dimensions || "").trim(),
 
     status: ["active", "paused"].includes(
@@ -180,16 +175,27 @@ router.get("/", async (req, res) => {
 });
 
 // =====================================
-// ADMIN: GET ALL ADS (ACTIVE + PAUSED)
+// ADMIN: GET ALL ADS
 // =====================================
 
 router.get("/admin/all", protect, adminOnly, async (req, res) => {
   try {
-    const ads = await Ad.find({}).sort({ createdAt: -1 });
-    return res.json({ success: true, count: ads.length, ads });
+    const ads = await Ad.find({}).sort({
+      createdAt: -1,
+    });
+
+    return res.json({
+      success: true,
+      count: ads.length,
+      ads,
+    });
   } catch (error) {
     console.error("Admin fetch ads error:", error.message);
-    return res.status(500).json({ success: false, message: "Failed to fetch ads." });
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch ads.",
+    });
   }
 });
 
@@ -200,12 +206,20 @@ router.get("/admin/all", protect, adminOnly, async (req, res) => {
 router.get("/admin/demo-balance", protect, adminOnly, async (req, res) => {
   try {
     const [summary] = await AdEvent.aggregate([
-      { $match: { eventType: "click" } },
+      {
+        $match: {
+          eventType: "click",
+        },
+      },
       {
         $group: {
           _id: null,
-          totalClicks: { $sum: 1 },
-          totalDemoBalance: { $sum: "$simulatedRevenue" },
+          totalClicks: {
+            $sum: 1,
+          },
+          totalDemoBalance: {
+            $sum: "$simulatedRevenue",
+          },
         },
       },
     ]);
@@ -213,13 +227,19 @@ router.get("/admin/demo-balance", protect, adminOnly, async (req, res) => {
     return res.json({
       success: true,
       totalClicks: summary?.totalClicks || 0,
-      totalDemoBalance: Number((summary?.totalDemoBalance || 0).toFixed(2)),
+      totalDemoBalance: Number(
+        (summary?.totalDemoBalance || 0).toFixed(2),
+      ),
       currency: "USD",
       isDemo: true,
     });
   } catch (error) {
     console.error("Demo balance error:", error.message);
-    return res.status(500).json({ success: false, message: "Failed to load demo balance." });
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load demo balance.",
+    });
   }
 });
 
@@ -249,7 +269,7 @@ router.post("/:id/impression", async (req, res) => {
         },
       },
       {
-        new: true,
+        returnDocument: "after",
       },
     );
 
@@ -281,7 +301,7 @@ router.post("/:id/impression", async (req, res) => {
 });
 
 // =====================================
-// PUBLIC: RECORD CLICK
+// PUBLIC: RECORD CLICK + STRIPE TEST
 // =====================================
 
 router.post("/:id/click", async (req, res) => {
@@ -306,7 +326,7 @@ router.post("/:id/click", async (req, res) => {
         },
       },
       {
-        new: true,
+        returnDocument: "after",
       },
     );
 
@@ -317,18 +337,62 @@ router.post("/:id/click", async (req, res) => {
       });
     }
 
-    await AdEvent.create({
+    // Random simulated amount: $1 or $2
+    const amount =
+      SIMULATED_REVENUE_PER_CLICK[
+        Math.floor(Math.random() * SIMULATED_REVENUE_PER_CLICK.length)
+      ];
+
+    // Save click event in MongoDB
+    const clickEvent = await AdEvent.create({
       ad: ad._id,
       eventType: "click",
-      simulatedRevenue: SIMULATED_REVENUE_PER_CLICK[
-        Math.floor(Math.random() * SIMULATED_REVENUE_PER_CLICK.length)
-      ],
+      simulatedRevenue: amount,
+      stripeTestAmount: amount,
+      stripePaymentStatus: "not_started",
     });
 
-    return res.status(201).json({
-      success: true,
-      message: "Click recorded.",
-    });
+    // Create Stripe TEST payment
+    try {
+      const payment = await createTestPayment(amount, ad._id);
+
+      clickEvent.stripePaymentIntentId = payment.id;
+      clickEvent.stripePaymentStatus =
+        payment.status === "succeeded" ? "succeeded" : "failed";
+
+      await clickEvent.save();
+
+      return res.status(201).json({
+        success: true,
+        message: "Ad click and Stripe test payment recorded.",
+        clickId: clickEvent._id,
+        demoEarning: amount,
+        currency: "USD",
+        isDemo: true,
+        isTest: true,
+        stripePayment: payment,
+      });
+    } catch (stripeError) {
+      console.error(
+        "STRIPE TEST PAYMENT ERROR:",
+        stripeError.message,
+      );
+
+      clickEvent.stripePaymentStatus = "failed";
+      await clickEvent.save();
+
+      return res.status(502).json({
+        success: false,
+        message: "Click recorded, but Stripe test payment failed.",
+        clickId: clickEvent._id,
+        demoEarning: amount,
+        currency: "USD",
+        stripePaymentStatus: "failed",
+        isDemo: true,
+        isTest: true,
+        stripeError: stripeError.message,
+      });
+    }
   } catch (error) {
     console.error("Click tracking error:", error.message);
 
@@ -573,7 +637,10 @@ router.patch("/:id", protect, adminOnly, async (req, res) => {
       updates.productUrl = String(updates.productUrl).trim();
     }
 
-    if (updates.imageUrl !== undefined || updates.productUrl !== undefined) {
+    if (
+      updates.imageUrl !== undefined ||
+      updates.productUrl !== undefined
+    ) {
       const currentAd = await Ad.findById(req.params.id);
 
       if (!currentAd) {
@@ -585,7 +652,6 @@ router.patch("/:id", protect, adminOnly, async (req, res) => {
 
       const validationError = validateAd({
         imageUrl: updates.imageUrl ?? currentAd.imageUrl,
-
         productUrl: updates.productUrl ?? currentAd.productUrl,
       });
 
@@ -603,7 +669,7 @@ router.patch("/:id", protect, adminOnly, async (req, res) => {
         $set: updates,
       },
       {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
       },
     );
@@ -645,7 +711,6 @@ router.delete("/:id", protect, adminOnly, async (req, res) => {
       });
     }
 
-    // Remove associated event records too.
     await AdEvent.deleteMany({
       ad: ad._id,
     });

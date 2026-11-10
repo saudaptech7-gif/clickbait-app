@@ -15,8 +15,26 @@ const adEventSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Demo-only revenue. This does not represent a real payment.
+    // Existing demo earning (not real money)
     simulatedRevenue: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // Stripe Test Mode payment details
+    stripePaymentIntentId: {
+      type: String,
+      default: "",
+    },
+
+    stripePaymentStatus: {
+      type: String,
+      enum: ["not_started", "succeeded", "failed"],
+      default: "not_started",
+    },
+
+    stripeTestAmount: {
       type: Number,
       default: 0,
       min: 0,

@@ -244,7 +244,7 @@ function AppContent() {
   const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  // RESTORE LOGIN SESSION
+  // RESTORE ADMIN / USER SESSION
   useEffect(() => {
     let active = true;
 
@@ -290,7 +290,7 @@ function AppContent() {
     };
   }, [token]);
 
-  // LOGIN NAVIGATION - ONLY HERE
+  // LOGIN
   function handleLogin(result) {
     if (!result?.token || !result?.user) {
       throw new Error("Invalid login response.");
@@ -308,7 +308,7 @@ function AppContent() {
     if (result.user.role === "admin") {
       navigate("/admin", { replace: true });
     } else {
-      navigate("/user-panel", { replace: true });
+      navigate("/", { replace: true });
     }
   }
 
@@ -317,16 +317,16 @@ function AppContent() {
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);
-    navigate("/login", { replace: true });
+    navigate("/", { replace: true });
   }
 
   if (checkingAuth) {
-    return <div className="auth-page">Checking account...</div>;
+    return <div className="auth-page">Loading...</div>;
   }
 
   return (
     <Routes>
-      {/* PUBLIC FEED */}
+      {/* PUBLIC FEED - LOGIN REQUIRED NAHI */}
       <Route
         path="/"
         element={<PublicFeed user={user} onLogout={handleLogout} />}
@@ -334,32 +334,26 @@ function AppContent() {
 
       <Route path="/feed" element={<Navigate to="/" replace />} />
 
-      {/* LOGIN */}
+      {/* LOGIN - DIRECT FEED */}
       <Route
         path="/login"
         element={
-          user ? (
-            <Navigate
-              to={user.role === "admin" ? "/admin" : "/user-panel"}
-              replace
-            />
+          user?.role === "admin" ? (
+            <Navigate to="/admin" replace />
           ) : (
-            <Login onLogin={handleLogin} />
+            <Navigate to="/" replace />
           )
         }
       />
 
-      {/* SIGNUP */}
+      {/* SIGNUP - DIRECT FEED */}
       <Route
         path="/signup"
         element={
-          user ? (
-            <Navigate
-              to={user.role === "admin" ? "/admin" : "/user-panel"}
-              replace
-            />
+          user?.role === "admin" ? (
+            <Navigate to="/admin" replace />
           ) : (
-            <Signup onLogin={handleLogin} />
+            <Navigate to="/" replace />
           )
         }
       />
@@ -370,27 +364,14 @@ function AppContent() {
         element={
           user?.role === "admin" ? (
             <Navigate to="/admin" replace />
-          ) : user?.role === "user" ? (
-            <Navigate to="/user-panel" replace />
           ) : (
             <Login onLogin={handleLogin} />
           )
         }
       />
 
-      {/* USER PANEL */}
-      <Route
-        path="/user-panel"
-        element={
-          user?.role === "user" ? (
-            <UserPanel user={user} onLogout={handleLogout} />
-          ) : user?.role === "admin" ? (
-            <Navigate to="/admin" replace />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
-      />
+      {/* USER PANEL - PUBLIC FEED */}
+      <Route path="/user-panel" element={<Navigate to="/" replace />} />
 
       {/* ADMIN ROUTES */}
       <Route
@@ -398,8 +379,6 @@ function AppContent() {
         element={
           user?.role === "admin" ? (
             <Dashboard token={token} onLogout={handleLogout} />
-          ) : user?.role === "user" ? (
-            <Navigate to="/user-panel" replace />
           ) : (
             <Navigate to="/admin/login" replace />
           )
