@@ -10,7 +10,17 @@ const connectDB = async () => {
 
     await mongoose.connect(mongoURI);
 
-    console.log(`MongoDB connected: ${mongoose.connection.name}`);
+    console.log("MongoDB connected successfully!");
+    console.log("Database name:", mongoose.connection.name);
+
+    const collections = await mongoose.connection.db
+      .listCollections()
+      .toArray();
+
+    console.log(
+      "Available collections:",
+      collections.map((collection) => collection.name),
+    );
   } catch (error) {
     console.error("MongoDB connection failed:", error.message);
     throw error;
