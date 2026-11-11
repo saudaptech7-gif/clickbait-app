@@ -18,8 +18,17 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow requests without an Origin header (health checks, etc.)
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Origin not allowed by CORS"));
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 
@@ -38,14 +47,19 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Ads API
 app.use("/api/ads", adsRoutes);
-
-// Authentication API
 app.use("/api/auth", authRoutes);
-
-// Stripe Test Payment API
 app.use("/api/payments", paymentRoutes);
+
+// Handle errors
+app.use((err, req, res, next) => {
+  console.error("API Error:", err.message);
+
+  res.status(500).json({
+    success: false,
+    message: "Server error",
+  });
+});
 
 const startServer = async () => {
   try {
