@@ -327,7 +327,7 @@ function AppContent() {
 
   return (
     <Routes>
-      {/* PUBLIC FEED - LOGIN REQUIRED NAHI */}
+      {/* PUBLIC FEED */}
       <Route
         path="/"
         element={<PublicFeed user={user} onLogout={handleLogout} />}
@@ -335,19 +335,23 @@ function AppContent() {
 
       <Route path="/feed" element={<Navigate to="/" replace />} />
 
-      {/* LOGIN - DIRECT FEED */}
+      {/* LOGIN - FIXED */}
       <Route
         path="/login"
         element={
-          user?.role === "admin" ? (
-            <Navigate to="/admin" replace />
+          user ? (
+            user.role === "admin" ? (
+              <Navigate to="/admin" replace />
+            ) : (
+              <Navigate to="/" replace />
+            )
           ) : (
-            <Navigate to="/" replace />
+            <Login onLogin={handleLogin} />
           )
         }
       />
 
-      {/* SIGNUP - DIRECT FEED */}
+      {/* SIGNUP */}
       <Route
         path="/signup"
         element={
@@ -371,7 +375,7 @@ function AppContent() {
         }
       />
 
-      {/* USER PANEL - PUBLIC FEED */}
+      {/* USER PANEL */}
       <Route path="/user-panel" element={<Navigate to="/" replace />} />
 
       {/* ADMIN ROUTES */}
