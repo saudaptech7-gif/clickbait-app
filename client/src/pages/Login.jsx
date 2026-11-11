@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { loginUser } from "../services/api";
 
 export default function Login({ onLogin }) {
@@ -104,11 +103,6 @@ export default function Login({ onLogin }) {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-
-        <p className="auth-switch">
-          Don't have an account?{" "}
-          <Link to="/signup">Create Account</Link>
-        </p>
       </div>
     </main>
   );
