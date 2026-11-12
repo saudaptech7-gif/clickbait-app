@@ -1,45 +1,88 @@
 import { useEffect, useMemo, useRef } from "react";
 import { trackImpression, trackClick } from "../services/api";
-import UserNavbar from "../components/UserNavbar";
 
-export default function Feed({
-  ads = [],
-  loading = false,
-  error = "",
-  user,
-  onLogout,
-}) {
-  const adCardRefs = useRef([]);
+export default function Feed({ ads = [], loading = false, error = "" }) {
+  const cardRefs = useRef([]);
   const trackedImpressions = useRef(new Set());
   const trackedClicks = useRef(new Set());
 
-  const activeAds = useMemo(
-    () =>
-      (Array.isArray(ads) ? ads : []).filter(
-        (ad) => ad && String(ad.status || "active").toLowerCase() === "active",
-      ),
-    [ads],
-  );
+  const activeAds = useMemo(() => {
+    return (Array.isArray(ads) ? ads : []).filter(
+      (ad) => ad && String(ad.status || "active").toLowerCase() === "active",
+    );
+  }, [ads]);
 
-  // Product website wale ads sabse upar
   const sortedAds = useMemo(() => {
     return [...activeAds].sort((a, b) => {
-      const aClickable =
-        typeof a.productUrl === "string" && a.productUrl.trim() !== "";
+      const aClickable = Boolean(
+        typeof a.productUrl === "string" && a.productUrl.trim(),
+      );
 
-      const bClickable =
-        typeof b.productUrl === "string" && b.productUrl.trim() !== "";
+      const bClickable = Boolean(
+        typeof b.productUrl === "string" && b.productUrl.trim(),
+      );
 
       return Number(bClickable) - Number(aClickable);
     });
   }, [activeAds]);
 
-  // Impression tracking
+  function getImageUrl(ad) {
+    const value = ad.imageUrl || ad.image || ad.image_url || "";
+    return typeof value === "string" ? value.trim() : "";
+  }
+
+  function handleImageLoad(event) {
+    const img = event.currentTarget;
+    const card = img.closest(".savor-wall-item");
+
+    if (!card || !img.naturalWidth || !img.naturalHeight) return;
+
+    const ratio = img.naturalWidth / img.naturalHeight;
+
+    card.dataset.ratio = String(ratio);
+
+    const baseWidth = Math.max(35, Math.min(70, 50 * ratio));
+    const previewWidth = Math.min(220, 260 * ratio);
+
+    card.style.setProperty("--savor-ratio", ratio);
+    card.style.setProperty("--savor-base-width", `${baseWidth}px`);
+    card.style.setProperty("--savor-preview-width", `${previewWidth}px`);
+  }
+
+  function handlePreviewEnter(event) {
+    const card = event.currentTarget;
+    const ratio = Number(card.dataset.ratio) || 1;
+
+    const previewWidth = Math.min(220, 260 * ratio, window.innerWidth - 24);
+
+    const imageHeight = previewWidth / ratio;
+    const previewHeight = imageHeight + 75;
+
+    const rect = card.getBoundingClientRect();
+
+    const spaceBelow = window.innerHeight - rect.top;
+    const spaceAbove = rect.bottom;
+
+    card.classList.toggle(
+      "savor-open-left",
+      rect.left + previewWidth > window.innerWidth - 12,
+    );
+
+    card.classList.toggle(
+      "savor-open-up",
+      spaceBelow < previewHeight && spaceAbove > spaceBelow,
+    );
+  }
+
+  function handlePreviewLeave(event) {
+    event.currentTarget.classList.remove("savor-open-left", "savor-open-up");
+  }
+
   useEffect(() => {
     if (loading || !sortedAds.length) return;
-
-    const cards = adCardRefs.current.filter(Boolean);
     if (!("IntersectionObserver" in window)) return;
+
+    const cards = cardRefs.current.filter(Boolean);
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -47,6 +90,7 @@ export default function Feed({
           if (!entry.isIntersecting) return;
 
           const adId = entry.target.dataset.adId;
+
           if (!adId || trackedImpressions.current.has(adId)) return;
 
           trackedImpressions.current.add(adId);
@@ -67,7 +111,6 @@ export default function Feed({
     return () => observer.disconnect();
   }, [loading, sortedAds]);
 
-  // Product website open aur click tracking
   async function openProductWebsite(ad) {
     if (!ad?.productUrl) return;
 
@@ -75,6 +118,7 @@ export default function Feed({
 
     try {
       url = new URL(ad.productUrl);
+
       if (!["https:", "http:"].includes(url.protocol)) return;
     } catch {
       console.error("Invalid product website URL.");
@@ -89,6 +133,7 @@ export default function Feed({
     }
 
     const clickKey = String(adId);
+
     if (trackedClicks.current.has(clickKey)) return;
 
     trackedClicks.current.add(clickKey);
@@ -113,132 +158,99 @@ export default function Feed({
     }
   }
 
-  function getImageUrl(ad) {
-    const value = ad.imageUrl || ad.image || ad.image_url || "";
-    return typeof value === "string" ? value.trim() : "";
+  function handleCardKeyDown(event, ad) {
+    if (event.key === "Enter" || event.key === " ") {
+      if (!ad?.productUrl) return;
+
+      event.preventDefault();
+      openProductWebsite(ad);
+    }
   }
 
   return (
-    <main className="public-feed-page">
-      <UserNavbar user={user} onLogout={onLogout} />
-
-      <section className="public-feed-advertisements">
+    <main className="savor-wall-page">
+      <section className="savor-wall-content">
         {error && (
-          <div className="public-feed-error" role="alert">
+          <div className="savor-wall-message savor-wall-error" role="alert">
             {error}
           </div>
         )}
 
         {loading ? (
-          <div className="public-feed-state">
-            <div className="public-feed-loader" />
+          <div className="savor-wall-message">
+            <div className="savor-wall-spinner" />
           </div>
         ) : sortedAds.length === 0 ? (
-          <div className="public-feed-state">No advertisements available.</div>
+          <div className="savor-wall-message">No advertisements available.</div>
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, 50px)",
-              gridAutoRows: "50px",
-              gap: "8px",
-              alignItems: "start",
-            }}
-          >
+          <div className="savor-wall-grid">
             {sortedAds.map((ad, index) => {
               const imageUrl = getImageUrl(ad);
               const adId = ad._id || ad.id;
 
+              const clickable = Boolean(
+                typeof ad.productUrl === "string" && ad.productUrl.trim(),
+              );
+
               return (
                 <article
                   key={adId || index}
+                  className="savor-wall-item"
                   data-ad-id={adId || ""}
                   ref={(element) => {
-                    adCardRefs.current[index] = element;
+                    cardRefs.current[index] = element;
                   }}
-                  onClick={() => openProductWebsite(ad)}
-                  role={ad.productUrl ? "link" : undefined}
-                  tabIndex={ad.productUrl ? 0 : undefined}
-                  onKeyDown={(event) => {
-                    if (
-                      ad.productUrl &&
-                      (event.key === "Enter" || event.key === " ")
-                    ) {
-                      event.preventDefault();
-                      openProductWebsite(ad);
-                    }
+                  onMouseEnter={handlePreviewEnter}
+                  onMouseLeave={handlePreviewLeave}
+                  onFocus={handlePreviewEnter}
+                  onBlur={handlePreviewLeave}
+                  onClick={() => {
+                    if (clickable) openProductWebsite(ad);
                   }}
+                  onKeyDown={(event) => handleCardKeyDown(event, ad)}
+                  role={clickable ? "link" : undefined}
+                  tabIndex={clickable ? 0 : undefined}
                   aria-label={ad.title || "Advertisement"}
-                  style={{
-                    width: "50px",
-                    height: "50px",
-                    minWidth: "50px",
-                    minHeight: "50px",
-                    boxSizing: "border-box",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "stretch",
-                    overflow: "hidden",
-                    padding: "2px",
-                    margin: 0,
-                    position: "relative",
-                    background: "#ffffff",
-                    border: "1px solid #dddddd",
-                    borderRadius: "4px",
-                    cursor: ad.productUrl ? "pointer" : "default",
-                  }}
                 >
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "30px",
-                      minHeight: "30px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt={ad.title || "Advertisement"}
-                        loading="lazy"
-                        style={{
-                          display: "block",
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                          objectPosition: "center",
-                        }}
-                        onError={(event) => {
-                          event.currentTarget.style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <span style={{ fontSize: "12px", color: "#888" }}>
-                        AD
-                      </span>
-                    )}
-                  </div>
+                  <div className="savor-wall-preview">
+                    <div className="savor-wall-photo">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={ad.title || "Advertisement"}
+                          loading="lazy"
+                          onLoad={handleImageLoad}
+                          onError={(event) => {
+                            console.error(
+                              "Image failed:",
+                              event.currentTarget.src,
+                            );
 
-                  <div
-                    title={ad.title || ""}
-                    style={{
-                      width: "100%",
-                      height: "14px",
-                      minHeight: "14px",
-                      overflow: "hidden",
-                      fontSize: "6px",
-                      lineHeight: "12px",
-                      fontWeight: 600,
-                      color: "#222222",
-                      textAlign: "center",
-                      whiteSpace: "nowrap",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {ad.title || "No title"}
+                            event.currentTarget.classList.add(
+                              "savor-image-error",
+                            );
+                          }}
+                        />
+                      ) : (
+                        <span className="savor-wall-placeholder">AD</span>
+                      )}
+
+                      <span className="savor-wall-image-error">
+                        Image unavailable
+                      </span>
+                    </div>
+
+                    <div className="savor-wall-caption">
+                      <span className="savor-wall-heading">
+                        {ad.title || "Untitled advertisement"}
+                      </span>
+
+                      {clickable && (
+                        <span className="savor-wall-subheading">
+                          VIEW ADVERTISEMENT
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </article>
               );
