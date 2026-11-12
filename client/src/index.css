@@ -11246,3 +11246,78 @@ body:has(.savor-wall-page),
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+
+/* ==========================================
+   SMOOTH PREMIUM HOVER ANIMATION
+========================================== */
+
+.savor-wall-item {
+  transition: z-index 0s;
+}
+
+.savor-wall-preview {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transform-origin: center center;
+  will-change: transform, opacity, box-shadow;
+
+  transition:
+    transform 480ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 300ms ease,
+    box-shadow 400ms ease,
+    border-radius 400ms ease !important;
+}
+
+/* OPEN */
+.savor-wall-item:hover .savor-wall-preview,
+.savor-wall-item:focus-within .savor-wall-preview {
+  opacity: 1;
+  transform: scale(1.045) translateY(-3px);
+
+  box-shadow:
+    0 12px 25px rgba(0, 0, 0, 0.14),
+    0 25px 50px rgba(0, 0, 0, 0.22);
+}
+
+/* IMAGE */
+.savor-wall-photo img {
+  transition: filter 350ms ease !important;
+}
+
+/* CAPTION */
+.savor-wall-caption {
+  transition:
+    background 350ms ease,
+    padding 350ms ease !important;
+}
+
+.savor-wall-heading {
+  transition:
+    color 300ms ease,
+    letter-spacing 300ms ease !important;
+}
+
+/* BUTTON */
+.savor-wall-subheading {
+  transition:
+    box-shadow 300ms ease,
+    background 300ms ease,
+    transform 300ms ease !important;
+}
+
+.savor-wall-item:hover .savor-wall-subheading {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(81, 70, 216, 0.25);
+}
+
+/* REDUCED MOTION */
+@media (prefers-reduced-motion: reduce) {
+
+  .savor-wall-preview,
+  .savor-wall-photo img,
+  .savor-wall-caption,
+  .savor-wall-heading,
+  .savor-wall-subheading {
+    transition: none !important;
+  }
+}
