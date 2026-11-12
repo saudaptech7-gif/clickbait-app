@@ -10711,7 +10711,538 @@ body:has(.savor-wall-page),
   transform: translateY(-2px);
   box-shadow: 0 7px 17px rgba(81, 70, 216, 0.35);
 }
+
 .savor-wall-subheading {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
+}
+
+/* BEFORE HOVER: FILL THE ENTIRE TILE */
+
+.savor-wall-item:not(:hover) .savor-wall-photo {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.savor-wall-item:not(:hover) .savor-wall-photo img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center;
+  display: block;
+}
+
+/* AFTER HOVER: PRESERVE ORIGINAL IMAGE RATIO */
+
+.savor-wall-item:hover .savor-wall-photo {
+  width: 100%;
+  height: auto !important;
+  overflow: hidden;
+}
+
+.savor-wall-item:hover .savor-wall-photo img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  object-position: center;
+}
+
+/* BEFORE HOVER: FILL THE ENTIRE TILE */
+
+.savor-wall-item:not(:hover) .savor-wall-photo {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.savor-wall-item:not(:hover) .savor-wall-photo img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center;
+  display: block;
+}
+
+/* AFTER HOVER: PRESERVE ORIGINAL IMAGE RATIO */
+
+.savor-wall-item:hover .savor-wall-photo {
+  width: 100%;
+  height: auto !important;
+  overflow: hidden;
+}
+
+.savor-wall-item:hover .savor-wall-photo img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  object-position: center;
+}
+
+/* =========================================
+   FORCE IMAGE WALL + HOVER PREVIEW
+========================================= */
+
+/* NORMAL STATE */
+.savor-wall-grid .savor-wall-item:not(:hover) .savor-wall-preview {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  overflow: hidden !important;
+}
+
+.savor-wall-grid .savor-wall-item:not(:hover) .savor-wall-photo {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.savor-wall-grid .savor-wall-item:not(:hover) .savor-wall-photo img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+/* HOVER STATE */
+.savor-wall-grid .savor-wall-item:hover .savor-wall-preview,
+.savor-wall-grid .savor-wall-item:focus-within .savor-wall-preview {
+  height: auto !important;
+  max-height: none !important;
+  overflow: hidden !important;
+}
+
+.savor-wall-grid .savor-wall-item:hover .savor-wall-photo,
+.savor-wall-grid .savor-wall-item:focus-within .savor-wall-photo {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.savor-wall-grid .savor-wall-item:hover .savor-wall-photo img,
+.savor-wall-grid .savor-wall-item:focus-within .savor-wall-photo img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  object-fit: contain !important;
+}
+
+/* SMOOTH TRANSITION */
+.savor-wall-preview {
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease !important;
+}
+
+/* =====================================
+   SMOOTH PREMIUM HOVER ANIMATION
+===================================== */
+
+.savor-wall-item {
+  transition: z-index 0.3s ease;
+}
+
+.savor-wall-preview {
+  transform: scale(1);
+  opacity: 1;
+  transform-origin: center center;
+
+  transition:
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s ease,
+    border-radius 0.35s ease,
+    opacity 0.3s ease !important;
+
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.savor-wall-item:hover .savor-wall-preview,
+.savor-wall-item:focus-within .savor-wall-preview {
+  transform: scale(1.035);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.18),
+    0 25px 55px rgba(0, 0, 0, 0.22);
+  border-radius: 14px;
+}
+
+/* IMAGE ZOOM */
+.savor-wall-photo img {
+  transition:
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.savor-wall-item:hover .savor-wall-photo img {
+  transform: scale(1.025);
+}
+
+/* CAPTION ANIMATION */
+.savor-wall-caption {
+  transition:
+    background 0.35s ease,
+    padding 0.35s ease;
+}
+
+.savor-wall-heading {
+  transition:
+    color 0.3s ease,
+    letter-spacing 0.3s ease;
+}
+
+.savor-wall-item:hover .savor-wall-heading {
+  letter-spacing: -0.3px;
+}
+
+/* VIEW ADVERTISEMENT ANIMATION */
+.savor-wall-subheading {
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease !important;
+}
+
+.savor-wall-item:hover .savor-wall-subheading {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(81, 70, 216, 0.3);
+}
+
+/* REDUCE MOTION ACCESSIBILITY */
+@media (prefers-reduced-motion: reduce) {
+
+  .savor-wall-preview,
+  .savor-wall-photo img,
+  .savor-wall-caption,
+  .savor-wall-heading,
+  .savor-wall-subheading {
+    transition: none !important;
+  }
+}
+
+/* =========================================
+   FORCE PREMIUM HOVER ANIMATION OVERRIDE
+========================================= */
+
+.savor-wall-item {
+  position: relative;
+  transition: z-index 0s linear 0.3s !important;
+}
+
+.savor-wall-item:hover,
+.savor-wall-item:focus-within {
+  z-index: 9999 !important;
+  transition-delay: 0s !important;
+}
+
+.savor-wall-preview {
+  transform: scale(1) !important;
+  opacity: 1 !important;
+  transform-origin: center center !important;
+
+  transition:
+    transform 550ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 450ms ease,
+    border-radius 400ms ease !important;
+
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.savor-wall-item:hover .savor-wall-preview,
+.savor-wall-item:focus-within .savor-wall-preview {
+  transform: scale(1.08) !important;
+  border-radius: 15px !important;
+  box-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.2),
+    0 30px 65px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* IMAGE ANIMATION */
+
+.savor-wall-photo img {
+  transition:
+    transform 600ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transform: scale(1) !important;
+}
+
+.savor-wall-item:hover .savor-wall-photo img {
+  transform: scale(1.035) !important;
+}
+
+/* CAPTION ANIMATION */
+
+.savor-wall-caption {
+  transition:
+    background 350ms ease,
+    padding 350ms ease !important;
+}
+
+.savor-wall-heading {
+  transition:
+    color 350ms ease,
+    letter-spacing 350ms ease !important;
+}
+
+.savor-wall-item:hover .savor-wall-heading {
+  color: #635bdb !important;
+}
+
+/* VIEW ADVERTISEMENT */
+
+.savor-wall-subheading {
+  transition:
+    transform 350ms ease,
+    box-shadow 350ms ease !important;
+}
+
+.savor-wall-item:hover .savor-wall-subheading {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 7px 18px rgba(81, 70, 216, 0.35) !important;
+}
+
+/* ACCESSIBILITY */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .savor-wall-preview,
+  .savor-wall-photo img,
+  .savor-wall-caption,
+  .savor-wall-heading,
+  .savor-wall-subheading {
+    transition: none !important;
+  }
+}
+
+/* ==========================================
+   SAVORLY - CLEAN PREMIUM HOVER ANIMATION
+   Final animation override
+========================================== */
+
+/* Card stacking */
+.savor-wall-item {
+  z-index: 1;
+  transition: z-index 0s;
+}
+
+.savor-wall-item:hover,
+.savor-wall-item:focus-within {
+  z-index: 1000;
+}
+
+/* Preview animation */
+.savor-wall-preview {
+  transform: scale(1);
+  opacity: 1;
+  transform-origin: center center;
+
+  transition:
+    transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 380ms ease,
+    border-radius 380ms ease !important;
+
+  backface-visibility: hidden;
+}
+
+/* Smooth expansion */
+.savor-wall-item:hover .savor-wall-preview,
+.savor-wall-item:focus-within .savor-wall-preview {
+  transform: scale(1.045);
+  border-radius: 14px;
+
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.12),
+    0 22px 45px rgba(0, 0, 0, 0.20);
+}
+
+/* Image: no additional zoom or distortion */
+.savor-wall-photo {
+  overflow: hidden;
+}
+
+.savor-wall-photo img {
+  transition: none !important;
+}
+
+/* Caption reveal */
+.savor-wall-caption {
+  transition:
+    background-color 300ms ease,
+    padding 300ms ease !important;
+}
+
+.savor-wall-heading {
+  transition: color 250ms ease !important;
+}
+
+.savor-wall-item:hover .savor-wall-heading {
+  color: #635bdb;
+}
+
+/* View advertisement */
+.savor-wall-subheading {
+  transition:
+    box-shadow 280ms ease,
+    background-color 280ms ease !important;
+}
+
+.savor-wall-item:hover .savor-wall-subheading {
+  box-shadow: 0 4px 12px rgba(81, 70, 216, 0.22);
+}
+
+/* Keyboard accessibility */
+.savor-wall-item:focus-visible .savor-wall-preview {
+  outline: 2px solid #635bdb;
+  outline-offset: 3px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  .savor-wall-preview,
+  .savor-wall-caption,
+  .savor-wall-heading,
+  .savor-wall-subheading {
+    transition: none !important;
+  }
+}
+
+/* ==========================================
+   FINAL HOVER ANIMATION + STACKING FIX
+========================================== */
+
+/* Keep grid items in a controlled stacking context */
+.savor-wall-grid {
+  position: relative;
+  isolation: isolate;
+}
+
+.savor-wall-grid .savor-wall-item {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+}
+
+/* Hovered card must immediately appear above all others */
+.savor-wall-grid .savor-wall-item:hover,
+.savor-wall-grid .savor-wall-item:focus-within {
+  z-index: 9999 !important;
+  isolation: auto;
+}
+
+/* Smooth preview expansion */
+.savor-wall-grid .savor-wall-preview {
+  transform: scale(1);
+  transform-origin: center center;
+  transition:
+    transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 450ms ease,
+    border-radius 400ms ease !important;
+
+  backface-visibility: hidden;
+}
+
+/* Expanded preview */
+.savor-wall-grid .savor-wall-item:hover .savor-wall-preview,
+.savor-wall-grid .savor-wall-item:focus-within .savor-wall-preview {
+  transform: scale(1.045);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.16),
+    0 28px 55px rgba(0, 0, 0, 0.24);
+  border-radius: 14px;
+}
+
+/* Image remains clear and undistorted */
+.savor-wall-grid .savor-wall-photo {
+  overflow: hidden;
+}
+
+.savor-wall-grid .savor-wall-photo img {
+  transition: none !important;
+}
+
+/* Smooth caption */
+.savor-wall-grid .savor-wall-caption {
+  transition: background-color 350ms ease !important;
+}
+
+.savor-wall-grid .savor-wall-heading {
+  transition: color 300ms ease !important;
+}
+
+/* Smooth closing */
+.savor-wall-grid .savor-wall-item:not(:hover) .savor-wall-preview {
+  transition:
+    transform 450ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 400ms ease,
+    border-radius 400ms ease !important;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  .savor-wall-grid .savor-wall-preview,
+  .savor-wall-grid .savor-wall-caption,
+  .savor-wall-grid .savor-wall-heading {
+    transition: none !important;
+  }
+}
+
+/* ==========================================
+   RIGHT-TO-LEFT HOVER FLICKER FIX
+========================================== */
+
+.savor-wall-grid {
+  position: relative !important;
+  isolation: isolate !important;
+}
+
+.savor-wall-grid .savor-wall-item {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Hovered item always gets priority */
+.savor-wall-grid .savor-wall-item:hover,
+.savor-wall-grid .savor-wall-item:focus-within {
+  z-index: 99999 !important;
+}
+
+/* Preview must stay above neighboring images */
+.savor-wall-grid .savor-wall-preview {
+  position: absolute !important;
+  z-index: 99999 !important;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  pointer-events: auto;
+}
+
+/* Remove stacking delay when pointer leaves */
+.savor-wall-grid .savor-wall-item:not(:hover) {
+  transition: none !important;
+}
+
+/* Smooth but predictable expansion and closing */
+.savor-wall-grid .savor-wall-preview {
+  transition:
+    transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 350ms ease,
+    border-radius 350ms ease !important;
+}
+
+/* Prevent neighboring cards from painting over preview */
+.savor-wall-grid .savor-wall-item:hover .savor-wall-preview {
+  z-index: 99999 !important;
+  isolation: isolate !important;
+}
+
+/* Keep image rendering stable */
+.savor-wall-grid .savor-wall-photo,
+.savor-wall-grid .savor-wall-photo img {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
