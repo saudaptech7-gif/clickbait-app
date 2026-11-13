@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { trackImpression, trackClick } from "../services/api";
 
 export default function Feed({ ads = [], loading = false, error = "" }) {
   const cardRefs = useRef([]);
   const trackedImpressions = useRef(new Set());
   const trackedClicks = useRef(new Set());
+  const [imagesReady, setImagesReady] = useState(false);
 
   const activeAds = useMemo(() => {
     return (Array.isArray(ads) ? ads : []).filter(
@@ -14,14 +15,8 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
 
   const sortedAds = useMemo(() => {
     return [...activeAds].sort((a, b) => {
-      const aClickable = Boolean(
-        typeof a.productUrl === "string" && a.productUrl.trim(),
-      );
-
-      const bClickable = Boolean(
-        typeof b.productUrl === "string" && b.productUrl.trim(),
-      );
-
+      const aClickable = Boolean(a.productUrl?.trim());
+      const bClickable = Boolean(b.productUrl?.trim());
       return Number(bClickable) - Number(aClickable);
     });
   }, [activeAds]);
@@ -30,6 +25,49 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
     const value = ad.imageUrl || ad.image || ad.image_url || "";
     return typeof value === "string" ? value.trim() : "";
   }
+
+  const imageUrls = useMemo(
+    () => sortedAds.map(getImageUrl).filter(Boolean),
+    [sortedAds],
+  );
+
+  // Preload all images after ads arrive.
+  useEffect(() => {
+    if (loading) {
+      setImagesReady(false);
+      return;
+    }
+
+    if (!imageUrls.length) {
+      setImagesReady(true);
+      return;
+    }
+
+    let cancelled = false;
+
+    setImagesReady(false);
+
+    Promise.all(
+      imageUrls.map(
+        (url) =>
+          new Promise((resolve) => {
+            const img = new Image();
+
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = url;
+
+            if (img.complete) resolve(img.naturalWidth > 0);
+          }),
+      ),
+    ).then(() => {
+      if (!cancelled) setImagesReady(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, imageUrls]);
 
   function handleImageLoad(event) {
     const img = event.currentTarget;
@@ -55,9 +93,7 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
 
     const previewWidth = Math.min(220, 260 * ratio, window.innerWidth - 24);
 
-    const imageHeight = previewWidth / ratio;
-    const previewHeight = imageHeight + 75;
-
+    const previewHeight = previewWidth / ratio + 75;
     const rect = card.getBoundingClientRect();
 
     const spaceBelow = window.innerHeight - rect.top;
@@ -79,10 +115,8 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
   }
 
   useEffect(() => {
-    if (loading || !sortedAds.length) return;
+    if (loading || !imagesReady || !sortedAds.length) return;
     if (!("IntersectionObserver" in window)) return;
-
-    const cards = cardRefs.current.filter(Boolean);
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -106,10 +140,12 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
       { threshold: 0.5 },
     );
 
-    cards.forEach((card) => observer.observe(card));
+    cardRefs.current.filter(Boolean).forEach((card) => {
+      observer.observe(card);
+    });
 
     return () => observer.disconnect();
-  }, [loading, sortedAds]);
+  }, [loading, imagesReady, sortedAds]);
 
   async function openProductWebsite(ad) {
     if (!ad?.productUrl) return;
@@ -118,7 +154,6 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
 
     try {
       url = new URL(ad.productUrl);
-
       if (!["https:", "http:"].includes(url.protocol)) return;
     } catch {
       console.error("Invalid product website URL.");
@@ -161,7 +196,6 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
   function handleCardKeyDown(event, ad) {
     if (event.key === "Enter" || event.key === " ") {
       if (!ad?.productUrl) return;
-
       event.preventDefault();
       openProductWebsite(ad);
     }
@@ -176,9 +210,10 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
           </div>
         )}
 
-        {loading ? (
+        {loading || !imagesReady ? (
           <div className="savor-wall-message">
             <div className="savor-wall-spinner" />
+            <p>Loading advertisements...</p>
           </div>
         ) : sortedAds.length === 0 ? (
           <div className="savor-wall-message">No advertisements available.</div>
@@ -218,7 +253,8 @@ export default function Feed({ ads = [], loading = false, error = "" }) {
                         <img
                           src={imageUrl}
                           alt={ad.title || "Advertisement"}
-                          loading="lazy"
+                          loading="eager"
+                          decoding="async"
                           onLoad={handleImageLoad}
                           onError={(event) => {
                             console.error(
